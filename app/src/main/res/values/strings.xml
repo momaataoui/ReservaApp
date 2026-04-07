@@ -1,3 +1,47 @@
 <resources>
-    <string name="app_name">ReservaApp</string>
+    <string name="app_name">H&amp;R</string>
+    <string name="luxe_escape">Luxe Escape</string>
+    <string name="hr_booking">H&amp;R BOOKING</string>
+    <string name="welcome_back">WELCOME BACK TO\nH&amp;R</string>
+    <string name="create_account">CREATE YOUR\nACCOUNT</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="full_name">Full Name</string>
+    <string name="login">Login</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="dont_have_account">Don\'t have an account? Sign Up</string>
+    <string name="already_have_account">Already have an account? Login</string>
+
+    <string name="welcome_to_luxe">WELCOME TO\nLUXE ESCAPE</string>
+    <string name="welcome_description">Welcome to our Cozy Haven, where Comfort Meets Style and Exceptional Service Elevates Every Experience</string>
+    <string name="book_now">Book now</string>
+    <string name="website_url">luxescape.com</string>
+
+    <string name="our_rooms">OUR ROOMS</string>
+    <string name="standard_room">Standard Room</string>
+    <string name="room_specs">1 bed | 2 sleeps</string>
+    <string name="room_description">The hotel offers different room categories that are suitable for both business travelers and vacationers.</string>
+    <string name="forgot_password">Forgot Password?</string>
+
+    <!-- Main screen strings -->
+    <string name="choose_reservation">CHOOSE YOUR\nRESERVATION</string>
+    <string name="hotels">HOTELS</string>
+    <string name="restaurants">RESTAURANTS</string>
+    <string name="bespoke_experience">YOUR BESPOKE\nEXPERIENCE AWAITS.</string>
+    <string name="bespoke_description">Curated luxury stays and world-class dining, tailored precisely to your distinguished taste.</string>
+    <string name="search_hint">Where shall we take you?</string>
+    <string name="search_btn">SEARCH</string>
+    <string name="find_a_hotel">FIND A HOTEL</string>
+    <string name="find_hotel_desc">Discover sanctuaries of elegance\nacross the globe.</string>
+    <string name="explore_destinations">EXPLORE DESTINATIONS</string>
+    <string name="book_a_table">BOOK A TABLE</string>
+    <string name="book_table_desc">Securing the finest culinary seats in the\ncity.</string>
+    <string name="reserve_now">RESERVE NOW</string>
+    <string name="exclusive_access">EXCLUSIVE ACCESS</string>
+
+    <!-- Nav strings -->
+    <string name="nav_discover">DISCOVER</string>
+    <string name="nav_bookings">BOOKINGS</string>
+    <string name="nav_saved">SAVED</string>
+    <string name="nav_profile">PROFILE</string>
 </resources>

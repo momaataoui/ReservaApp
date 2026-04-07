@@ -2,4 +2,8 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="beige_bg">#F5F5F0</color>
+    <color name="beige_card">#EBEBE6</color>
+    <color name="primary_text">#1A1A1A</color>
+    <color name="secondary_text">#757575</color>
 </resources>
