@@ -55,6 +55,9 @@ dependencies {
 
     // Glide pour le chargement d'images
     implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation(libs.credentials)
+    implementation(libs.credentials.play.services.auth)
+    implementation(libs.googleid)
     // AnnotationProcessor est OBLIGATOIRE en Java pour Glide
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
 

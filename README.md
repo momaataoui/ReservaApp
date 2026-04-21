@@ -1,57 +1,56 @@
 # ReservaApp - Luxe Escape
 
-ReservaApp is a premium hotel and restaurant reservation application for Android, designed with a focus on high-end user experience and modern design principles.
+ReservaApp est une application Android premium de réservation d'hôtels et de restaurants, conçue avec un accent particulier sur l'expérience utilisateur haut de gamme et les principes de design modernes.
 
-## 🚀 Features
+## 🚀 Fonctionnalités
 
-- **User Authentication**: Secure sign-up, login, and password reset using Firebase Authentication.
-- **Dynamic Profile**: Personalized user profile with the ability to update name, phone number, and profile picture (via Gallery or Camera).
-- **Cloud Database**: Real-time data synchronization using Cloud Firestore.
-- **Premium Design**:
-  - Clean, minimal UI inspired by Airbnb and LinkedIn.
-  - Custom bottom navigation with dynamic selection indicators.
-  - High-end transitions (Fade and Scale-up) between screens.
-  - Optimized system bar handling (Dark icons on white background).
-- **Cloud Storage**: Profile images are securely stored and served via Firebase Storage and Glide.
+- **Authentification Sécurisée** : Inscription (avec nom, email, téléphone), connexion et réinitialisation de mot de passe via Firebase Auth.
+- **Expérience Visuelle Premium** :
+  - Design épuré et minimaliste (inspiré par Airbnb/LinkedIn).
+  - **Correction Dark Mode** : Interface d'authentification optimisée pour rester élégante et lisible quel que soit le mode du système.
+  - Bouton de connexion sociale (Google) personnalisé.
+  - Transitions fluides (Fade & Scale-up) entre les écrans.
+- **Gestion de Profil Dynamique** : Profil utilisateur complet avec synchronisation en temps réel (nom, téléphone) et gestion d'image de profil (Galerie/Appareil photo).
+- **Base de Données Cloud** : Synchronisation en temps réel via Cloud Firestore.
+- **Navigation Intuitive** : Barre de navigation personnalisée avec indicateurs de sélection dynamiques.
 
-## 🛠 Tech Stack
+## 🛠 Stack Technique
 
-- **Language**: Java
-- **UI Architecture**: XML Layouts with ViewBinding
-- **Backend**: Firebase (Auth, Firestore, Storage)
-- **Image Loading**: Glide
-- **Tools**: Android Studio, Git
+- **Langage** : Java
+- **Architecture UI** : XML Layouts avec Material Components (Material 3)
+- **Backend** : Firebase (Authentication, Firestore, Storage)
+- **Chargement d'Images** : Glide
+- **Outils** : Android Studio, Gradle, Git
 
-## 📦 Installation & Setup
+## 📦 Installation & Configuration
 
-1. **Clone the repository**:
+1. **Cloner le dépôt** :
    ```bash
    git clone https://github.com/momaataoui/ReservaApp.git
    ```
 
-2. **Firebase Configuration**:
-   - Create a project on the [Firebase Console](https://console.firebase.google.com/).
-   - Add an Android app with the package name `com.ensab.reservaapp`.
-   - Download the `google-services.json` file and place it in the `app/` directory of the project.
-   - Enable **Authentication** (Email/Password), **Firestore Database**, and **Storage**.
+2. **Configuration Firebase** :
+   - Créez un projet sur la [Console Firebase](https://console.firebase.google.com/).
+   - Ajoutez une application Android avec le nom de package `com.ensab.reservaapp`.
+   - Téléchargez le fichier `google-services.json` et placez-le dans le répertoire `app/`.
+   - Activez **Authentication** (Email/Password, Google), **Firestore Database**, et **Storage**.
 
-3. **Build the project**:
-   - Open the project in Android Studio.
-   - Sync Gradle files.
-   - Run the app on an emulator or a physical device.
+3. **Compiler le projet** :
+   - Ouvrez le projet dans Android Studio.
+   - Synchronisez les fichiers Gradle.
+   - Lancez l'application sur un émulateur ou un appareil physique.
 
-## 📁 Project Structure
+## 📁 Structure du Projet
 
-- `app/src/main/java/com/ensab/reservaapp/`:
-  - `LoginActivity.java`: Firebase Auth login logic.
-  - `SignUpActivity.java`: User registration with Firestore integration.
-  - `ProfileActivity.java`: Cloud-synced profile management.
-  - `ChoiceActivity.java`: Main "Discover" dashboard.
-  - `FirebaseHelper.java`: Utility for Firestore cloud operations.
-  - `NavigationHelper.java`: Dynamic state management for the bottom nav bar.
-- `app/src/main/res/layout/`: Premium XML layouts.
-- `app/src/main/res/anim/`: Custom "Luxe" transition animations.
+- `app/src/main/java/com/ensab/reservaapp/` : Source Java.
+  - `LoginActivity.java` : Gestion de la connexion.
+  - `SignUpActivity.java` : Enregistrement des nouveaux utilisateurs.
+  - `ForgotPasswordActivity.java` : Récupération de compte.
+  - `ProfileActivity.java` : Gestion du profil utilisateur.
+  - `ChoiceActivity.java` : Tableau de bord principal (Exploration).
+- `app/src/main/res/layout/` : Définitions d'interface XML (Optimisées pour la cohérence visuelle).
+- `app/src/main/res/values/` : Thèmes et couleurs (Forçage du style White-Premium).
 
-## 📄 License
+## 📄 Licence
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour plus de détails.

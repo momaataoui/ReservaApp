@@ -11,6 +11,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -29,11 +30,16 @@ public class LoginActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         sharedPreferences = getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
 
-        // Check both local session AND Firebase session
-        if (sharedPreferences.getBoolean(KEY_IS_LOGGED_IN, false) && mAuth.getCurrentUser() != null) {
-            startActivity(new Intent(LoginActivity.this, ChoiceActivity.class));
-            finish();
-            return;
+        // Auto-login only if session exists AND email is verified
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (sharedPreferences.getBoolean(KEY_IS_LOGGED_IN, false) && currentUser != null) {
+            if (currentUser.isEmailVerified()) {
+                startActivity(new Intent(LoginActivity.this, ChoiceActivity.class));
+                finish();
+                return;
+            } else {
+                mAuth.signOut(); // Security: sign out if not verified
+            }
         }
 
         setContentView(R.layout.activity_login);
@@ -72,15 +78,23 @@ public class LoginActivity extends AppCompatActivity {
         mAuth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(this, task -> {
                 if (task.isSuccessful()) {
-                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putBoolean(KEY_IS_LOGGED_IN, true);
-                    editor.putString(KEY_USER_EMAIL, email);
-                    editor.apply();
+                    FirebaseUser user = mAuth.getCurrentUser();
+                    if (user != null && user.isEmailVerified()) {
+                        // Success: Email is verified
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putBoolean(KEY_IS_LOGGED_IN, true);
+                        editor.putString(KEY_USER_EMAIL, email);
+                        editor.apply();
 
-                    Toast.makeText(LoginActivity.this, "Login Successful", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(LoginActivity.this, ChoiceActivity.class);
-                    startActivity(intent);
-                    finish();
+                        Toast.makeText(LoginActivity.this, "Login Successful", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(LoginActivity.this, ChoiceActivity.class);
+                        startActivity(intent);
+                        finish();
+                    } else {
+                        // Fail: Email not verified
+                        Toast.makeText(this, "Please verify your email before logging in.", Toast.LENGTH_LONG).show();
+                        mAuth.signOut();
+                    }
                 } else {
                     Toast.makeText(LoginActivity.this, "Auth failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                 }

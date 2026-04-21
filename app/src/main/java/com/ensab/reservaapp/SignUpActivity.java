@@ -8,6 +8,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.HashMap;
 import java.util.Map;
@@ -58,23 +59,38 @@ public class SignUpActivity extends AppCompatActivity {
         mAuth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener(this, task -> {
                 if (task.isSuccessful()) {
-                    String userId = mAuth.getCurrentUser().getUid();
-                    Map<String, Object> user = new HashMap<>();
-                    user.put("fullName", fullName);
-                    user.put("email", email);
-                    user.put("phone", phone);
-                    user.put("profileImage", "");
-
-                    db.collection("users").document(userId)
-                        .set(user)
-                        .addOnSuccessListener(aVoid -> {
-                            Toast.makeText(SignUpActivity.this, "Registration Successful", Toast.LENGTH_SHORT).show();
-                            finish();
-                        })
-                        .addOnFailureListener(e -> Toast.makeText(SignUpActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                    FirebaseUser user = mAuth.getCurrentUser();
+                    if (user != null) {
+                        // Send verification email
+                        user.sendEmailVerification()
+                            .addOnCompleteListener(verifyTask -> {
+                                if (verifyTask.isSuccessful()) {
+                                    saveUserToFirestore(user.getUid(), fullName, email, phone);
+                                } else {
+                                    Toast.makeText(SignUpActivity.this, "Failed to send verification email.", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                    }
                 } else {
                     Toast.makeText(SignUpActivity.this, "Authentication failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
+    }
+
+    private void saveUserToFirestore(String userId, String fullName, String email, String phone) {
+        Map<String, Object> user = new HashMap<>();
+        user.put("fullName", fullName);
+        user.put("email", email);
+        user.put("phone", phone);
+        user.put("profileImage", "");
+
+        db.collection("users").document(userId)
+            .set(user)
+            .addOnSuccessListener(aVoid -> {
+                Toast.makeText(SignUpActivity.this, "Registration Successful. Please check your email for verification.", Toast.LENGTH_LONG).show();
+                mAuth.signOut(); // Force user to log in after verification
+                finish();
+            })
+            .addOnFailureListener(e -> Toast.makeText(SignUpActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 }
