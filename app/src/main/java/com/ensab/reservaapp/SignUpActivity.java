@@ -7,19 +7,25 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SignUpActivity extends AppCompatActivity {
 
     private EditText etFullName, etEmail, etPhone, etPassword;
     private Button btnSignUp;
-    private DatabaseHelper dbHelper;
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
 
-        dbHelper = new DatabaseHelper(this);
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
 
         etFullName = findViewById(R.id.etFullName);
         etEmail = findViewById(R.id.etEmail);
@@ -40,19 +46,35 @@ public class SignUpActivity extends AppCompatActivity {
                 Toast.makeText(SignUpActivity.this, "Please enter a valid email", Toast.LENGTH_SHORT).show();
             } else if (password.length() < 6) {
                 Toast.makeText(SignUpActivity.this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
-            } else if (dbHelper.isEmailExists(email)) {
-                Toast.makeText(SignUpActivity.this, "Email already exists", Toast.LENGTH_SHORT).show();
             } else {
-                boolean success = dbHelper.addUser(fullName, email, phone, password);
-                if (success) {
-                    Toast.makeText(SignUpActivity.this, "Registration Successful", Toast.LENGTH_SHORT).show();
-                    finish();
-                } else {
-                    Toast.makeText(SignUpActivity.this, "Registration Failed", Toast.LENGTH_SHORT).show();
-                }
+                registerUser(fullName, email, phone, password);
             }
         });
 
         tvLogin.setOnClickListener(v -> finish());
+    }
+
+    private void registerUser(String fullName, String email, String phone, String password) {
+        mAuth.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener(this, task -> {
+                if (task.isSuccessful()) {
+                    String userId = mAuth.getCurrentUser().getUid();
+                    Map<String, Object> user = new HashMap<>();
+                    user.put("fullName", fullName);
+                    user.put("email", email);
+                    user.put("phone", phone);
+                    user.put("profileImage", "");
+
+                    db.collection("users").document(userId)
+                        .set(user)
+                        .addOnSuccessListener(aVoid -> {
+                            Toast.makeText(SignUpActivity.this, "Registration Successful", Toast.LENGTH_SHORT).show();
+                            finish();
+                        })
+                        .addOnFailureListener(e -> Toast.makeText(SignUpActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                } else {
+                    Toast.makeText(SignUpActivity.this, "Authentication failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
     }
 }

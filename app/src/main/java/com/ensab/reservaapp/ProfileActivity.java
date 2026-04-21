@@ -27,7 +27,15 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
+
+import com.bumptech.glide.Glide;
 import com.google.android.material.imageview.ShapeableImageView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -39,10 +47,11 @@ public class ProfileActivity extends AppCompatActivity {
     private TextView tvDisplayFullName, tvInfoName, tvInfoEmail, tvInfoPhone;
     private ShapeableImageView ivProfileLarge;
     private Button btnEdit, btnLogout;
-    private DatabaseHelper dbHelper;
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
+    private FirebaseStorage storage;
     private SharedPreferences sharedPreferences;
     private static final String SHARED_PREF_NAME = "user_session";
-    private static final String KEY_USER_EMAIL = "user_email";
 
     private ActivityResultLauncher<Intent> galleryLauncher;
     private ActivityResultLauncher<Uri> cameraLauncher;
@@ -69,9 +78,10 @@ public class ProfileActivity extends AppCompatActivity {
             return insets;
         });
 
-        dbHelper = new DatabaseHelper(this);
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+        storage = FirebaseStorage.getInstance();
         sharedPreferences = getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
-        String userEmail = sharedPreferences.getString(KEY_USER_EMAIL, "");
 
         ivProfileLarge = findViewById(R.id.ivProfileLarge);
         tvDisplayFullName = findViewById(R.id.tvDisplayFullName);
@@ -81,11 +91,18 @@ public class ProfileActivity extends AppCompatActivity {
         btnEdit = findViewById(R.id.btnEdit);
         btnLogout = findViewById(R.id.btnLogout);
 
-        loadUserData(userEmail);
-        initPhotoPickers(userEmail);
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null) {
+            goToLogin();
+            return;
+        }
+
+        loadUserData();
+        initPhotoPickers();
+        NavigationHelper.setSelectedItem(this, R.id.navProfile);
 
         findViewById(R.id.btnChangePhoto).setOnClickListener(v -> showPhotoOptionsDialog());
-        btnEdit.setOnClickListener(v -> showEditDialog(userEmail));
+        btnEdit.setOnClickListener(v -> showEditDialog());
         btnLogout.setOnClickListener(v -> logoutUser());
         
         findViewById(R.id.btnBack).setOnClickListener(v -> {
@@ -93,22 +110,24 @@ public class ProfileActivity extends AppCompatActivity {
             overridePendingTransition(R.anim.fade_in, R.anim.fade_scale_out);
         });
 
-        setupBottomNav();
+        setupNavigation();
     }
 
-    private void initPhotoPickers(String email) {
+    private void goToLogin() {
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+    }
+
+    private void initPhotoPickers() {
         galleryLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                     Uri imageUri = result.getData().getData();
                     if (imageUri != null) {
-                        try {
-                            getContentResolver().takePersistableUriPermission(imageUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                            saveProfileImage(email, imageUri.toString());
-                        } catch (Exception e) {
-                            saveProfileImage(email, imageUri.toString());
-                        }
+                        uploadProfileImage(imageUri);
                     }
                 }
             }
@@ -118,7 +137,7 @@ public class ProfileActivity extends AppCompatActivity {
             new ActivityResultContracts.TakePicture(),
             success -> {
                 if (success && cameraImageUri != null) {
-                    saveProfileImage(email, cameraImageUri.toString());
+                    uploadProfileImage(cameraImageUri);
                 }
             }
         );
@@ -181,70 +200,89 @@ public class ProfileActivity extends AppCompatActivity {
         galleryLauncher.launch(intent);
     }
 
-    private void saveProfileImage(String email, String uriString) {
-        if (dbHelper.updateProfileImage(email, uriString)) {
-            ivProfileLarge.setImageURI(null); // Force refresh
-            ivProfileLarge.setImageURI(Uri.parse(uriString));
-            Toast.makeText(this, "Photo de profil mise à jour", Toast.LENGTH_SHORT).show();
-        }
+    private void uploadProfileImage(Uri imageUri) {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) return;
+        
+        String userId = user.getUid();
+        StorageReference profileRef = storage.getReference().child("profile_images/" + userId + ".jpg");
+
+        profileRef.putFile(imageUri)
+            .addOnSuccessListener(taskSnapshot -> profileRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                String downloadUrl = uri.toString();
+                db.collection("users").document(userId)
+                    .update("profileImage", downloadUrl)
+                    .addOnSuccessListener(aVoid -> {
+                        Glide.with(this).load(downloadUrl).into(ivProfileLarge);
+                        Toast.makeText(this, "Photo de profil mise à jour", Toast.LENGTH_SHORT).show();
+                    });
+            }))
+            .addOnFailureListener(e -> Toast.makeText(this, "Échec de l'upload: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
-    private void setupBottomNav() {
-        View navProfile = findViewById(R.id.navProfile);
-        navProfile.setBackgroundResource(R.drawable.nav_item_bg_selected);
-        TextView tvProfileNav = findViewById(R.id.tvProfileNav);
-        ImageView ivProfileNav = findViewById(R.id.ivProfileNav);
-        if (tvProfileNav != null) { tvProfileNav.setTextColor(Color.BLACK); tvProfileNav.setAlpha(1.0f); }
-        if (ivProfileNav != null) { ivProfileNav.setAlpha(1.0f); }
-        View navDiscover = findViewById(R.id.navDiscover);
-        navDiscover.setBackground(null);
-        ImageView ivDiscover = findViewById(R.id.ivDiscover);
-        TextView tvDiscover = findViewById(R.id.tvDiscover);
-        if (ivDiscover != null) ivDiscover.setAlpha(0.5f);
-        if (tvDiscover != null) { tvDiscover.setAlpha(0.5f); tvDiscover.setTextColor(getResources().getColor(R.color.secondary_text)); }
-        navDiscover.setOnClickListener(v -> {
-            Intent intent = new Intent(ProfileActivity.this, ChoiceActivity.class);
+    private void setupNavigation() {
+        findViewById(R.id.navDiscover).setOnClickListener(v -> {
+            Intent intent = new Intent(this, ChoiceActivity.class);
             startActivity(intent);
             overridePendingTransition(R.anim.fade_in, R.anim.fade_scale_out);
             finish();
         });
     }
 
-    private void loadUserData(String email) {
-        if (!email.isEmpty()) {
-            String fullName = dbHelper.getUserFullName(email);
-            String phone = dbHelper.getUserPhone(email);
-            String imageUri = dbHelper.getUserProfileImage(email);
+    private void loadUserData() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) return;
+        
+        String userId = user.getUid();
+        db.collection("users").document(userId).get()
+            .addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    String fullName = documentSnapshot.getString("fullName");
+                    String email = documentSnapshot.getString("email");
+                    String phone = documentSnapshot.getString("phone");
+                    String imageUrl = documentSnapshot.getString("profileImage");
 
-            tvDisplayFullName.setText(fullName);
-            tvInfoName.setText(fullName);
-            tvInfoEmail.setText(email);
-            tvInfoPhone.setText(phone != null && !phone.isEmpty() ? phone : "Non renseigné");
-            
-            if (imageUri != null && !imageUri.isEmpty()) {
-                ivProfileLarge.setImageURI(Uri.parse(imageUri));
-            }
-        }
+                    tvDisplayFullName.setText(fullName);
+                    tvInfoName.setText(fullName);
+                    tvInfoEmail.setText(email);
+                    tvInfoPhone.setText(phone != null && !phone.isEmpty() ? phone : "Non renseigné");
+                    
+                    if (imageUrl != null && !imageUrl.isEmpty()) {
+                        Glide.with(this).load(imageUrl).into(ivProfileLarge);
+                    }
+                }
+            })
+            .addOnFailureListener(e -> Toast.makeText(this, "Erreur de chargement", Toast.LENGTH_SHORT).show());
     }
 
-    private void showEditDialog(String email) {
+    private void showEditDialog() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) return;
+        
+        String userId = user.getUid();
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_edit_profile, null);
         builder.setView(dialogView);
+        
         EditText etEditName = dialogView.findViewById(R.id.etEditName);
         EditText etEditPhone = dialogView.findViewById(R.id.etEditPhone);
-        etEditName.setText(dbHelper.getUserFullName(email));
-        etEditPhone.setText(dbHelper.getUserPhone(email));
+        
+        etEditName.setText(tvInfoName.getText());
+        etEditPhone.setText(tvInfoPhone.getText().equals("Non renseigné") ? "" : tvInfoPhone.getText());
+
         builder.setPositiveButton("Enregistrer", (dialog, which) -> {
             String newName = etEditName.getText().toString().trim();
             String newPhone = etEditPhone.getText().toString().trim();
             if (newName.isEmpty()) {
                 Toast.makeText(this, "Le nom ne peut pas être vide", Toast.LENGTH_SHORT).show();
             } else {
-                dbHelper.updateFullName(email, newName);
-                dbHelper.updatePhone(email, newPhone);
-                loadUserData(email);
-                Toast.makeText(this, "Profil mis à jour", Toast.LENGTH_SHORT).show();
+                db.collection("users").document(userId)
+                    .update("fullName", newName, "phone", newPhone)
+                    .addOnSuccessListener(aVoid -> {
+                        loadUserData();
+                        Toast.makeText(this, "Profil mis à jour", Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(e -> Toast.makeText(this, "Échec de la mise à jour", Toast.LENGTH_SHORT).show());
             }
         });
         builder.setNegativeButton("Annuler", null);
@@ -252,12 +290,10 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void logoutUser() {
+        mAuth.signOut();
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.clear();
         editor.apply();
-        Intent intent = new Intent(ProfileActivity.this, LoginActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        finish();
+        goToLogin();
     }
 }

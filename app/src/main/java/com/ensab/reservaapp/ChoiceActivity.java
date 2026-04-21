@@ -3,6 +3,8 @@ package com.ensab.reservaapp;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
 import android.view.Window;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,11 +16,12 @@ import com.google.android.material.card.MaterialCardView;
 
 public class ChoiceActivity extends AppCompatActivity {
 
+    private FirebaseHelper firebaseHelper;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // Setup Status Bar
         Window window = getWindow();
         window.setStatusBarColor(Color.WHITE);
         WindowInsetsControllerCompat windowInsetsController = 
@@ -35,25 +38,73 @@ public class ChoiceActivity extends AppCompatActivity {
             return insets;
         });
 
+        firebaseHelper = new FirebaseHelper();
+        
+        // Ensure some data exists in Firestore for the app to function
+        firebaseHelper.insertSampleDataIfEmpty(new FirebaseHelper.Callback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                Log.d("Firebase", "Sample data initialized if it was empty");
+            }
+
+            @Override
+            public void onFailure(String error) {
+                Log.e("Firebase", "Error checking/initializing data: " + error);
+            }
+        });
+
+        NavigationHelper.setSelectedItem(this, R.id.navDiscover);
+        setupCards();
         setupNavigation();
     }
 
-    private void setupNavigation() {
+    private void setupCards() {
         MaterialCardView cardHotels = findViewById(R.id.cardHotels);
         MaterialCardView cardRestaurants = findViewById(R.id.cardRestaurants);
 
-        cardHotels.setOnClickListener(v -> Toast.makeText(this, "Hotels Selected", Toast.LENGTH_SHORT).show());
-        cardRestaurants.setOnClickListener(v -> Toast.makeText(this, "Restaurants Selected", Toast.LENGTH_SHORT).show());
+        if (cardHotels != null) {
+            cardHotels.setOnClickListener(v -> {
+                Toast.makeText(this, "Hotels Selected", Toast.LENGTH_SHORT).show();
+            });
+        }
 
-        // Navigate to Profile with Custom Fade & Scale Animation
-        findViewById(R.id.navProfile).setOnClickListener(v -> navigateToProfile());
-        findViewById(R.id.ivProfile).setOnClickListener(v -> navigateToProfile());
+        if (cardRestaurants != null) {
+            cardRestaurants.setOnClickListener(v -> Toast.makeText(this, "Restaurants Selected", Toast.LENGTH_SHORT).show());
+        }
+    }
+
+    private void setupNavigation() {
+        View navProfile = findViewById(R.id.navProfile);
+        if (navProfile != null) {
+            navProfile.setOnClickListener(v -> navigateToProfile());
+        }
+
+        View ivProfile = findViewById(R.id.ivProfile);
+        if (ivProfile != null) {
+            ivProfile.setOnClickListener(v -> navigateToProfile());
+        }
+
+        View navSaved = findViewById(R.id.navSaved);
+        if (navSaved != null) {
+            navSaved.setOnClickListener(v -> Toast.makeText(this, "Wishlists coming soon", Toast.LENGTH_SHORT).show());
+        }
+
+        View navBookings = findViewById(R.id.navBookings);
+        if (navBookings != null) {
+            navBookings.setOnClickListener(v -> Toast.makeText(this, "Trips coming soon", Toast.LENGTH_SHORT).show());
+        }
+        
+        View navDiscover = findViewById(R.id.navDiscover);
+        if (navDiscover != null) {
+            navDiscover.setOnClickListener(v -> {
+                // Already on Discover
+            });
+        }
     }
 
     private void navigateToProfile() {
         Intent intent = new Intent(this, ProfileActivity.class);
         startActivity(intent);
-        // Custom animation: Fade-in + Scale-up for the new activity
         overridePendingTransition(R.anim.fade_scale_in, R.anim.fade_out);
     }
 }

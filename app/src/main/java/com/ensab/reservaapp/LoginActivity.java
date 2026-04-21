@@ -10,12 +10,13 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.firebase.auth.FirebaseAuth;
 
 public class LoginActivity extends AppCompatActivity {
 
     private EditText etEmail, etPassword;
     private Button btnLogin;
-    private DatabaseHelper dbHelper;
+    private FirebaseAuth mAuth;
     private SharedPreferences sharedPreferences;
     private static final String SHARED_PREF_NAME = "user_session";
     private static final String KEY_IS_LOGGED_IN = "is_logged_in";
@@ -25,17 +26,17 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Check Session
+        mAuth = FirebaseAuth.getInstance();
         sharedPreferences = getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
-        if (sharedPreferences.getBoolean(KEY_IS_LOGGED_IN, false)) {
+
+        // Check both local session AND Firebase session
+        if (sharedPreferences.getBoolean(KEY_IS_LOGGED_IN, false) && mAuth.getCurrentUser() != null) {
             startActivity(new Intent(LoginActivity.this, ChoiceActivity.class));
             finish();
             return;
         }
 
         setContentView(R.layout.activity_login);
-
-        dbHelper = new DatabaseHelper(this);
 
         etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
@@ -51,24 +52,8 @@ public class LoginActivity extends AppCompatActivity {
                 Toast.makeText(LoginActivity.this, "Please enter email and password", Toast.LENGTH_SHORT).show();
             } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                 Toast.makeText(LoginActivity.this, "Please enter a valid email", Toast.LENGTH_SHORT).show();
-            } else if (password.length() < 6) {
-                Toast.makeText(LoginActivity.this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
             } else {
-                boolean isValid = dbHelper.checkUser(email, password);
-                if (isValid) {
-                    // Save Session
-                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putBoolean(KEY_IS_LOGGED_IN, true);
-                    editor.putString(KEY_USER_EMAIL, email);
-                    editor.apply();
-
-                    Toast.makeText(LoginActivity.this, "Login Successful", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(LoginActivity.this, ChoiceActivity.class);
-                    startActivity(intent);
-                    finish();
-                } else {
-                    Toast.makeText(LoginActivity.this, "Invalid email or password", Toast.LENGTH_SHORT).show();
-                }
+                loginUser(email, password);
             }
         });
 
@@ -81,5 +66,24 @@ public class LoginActivity extends AppCompatActivity {
             Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);
             startActivity(intent);
         });
+    }
+
+    private void loginUser(String email, String password) {
+        mAuth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener(this, task -> {
+                if (task.isSuccessful()) {
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putBoolean(KEY_IS_LOGGED_IN, true);
+                    editor.putString(KEY_USER_EMAIL, email);
+                    editor.apply();
+
+                    Toast.makeText(LoginActivity.this, "Login Successful", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(LoginActivity.this, ChoiceActivity.class);
+                    startActivity(intent);
+                    finish();
+                } else {
+                    Toast.makeText(LoginActivity.this, "Auth failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
     }
 }
