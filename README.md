@@ -42,15 +42,15 @@ ReservaApp is a premium hotel and restaurant reservation application for Android
 
 ## 📁 Project Structure
 
-- `app/src/main/java/com/ensab/reservaapp/`: Java source code.
-  - `LoginActivity.java`: Handles user login.
-  - `SignUpActivity.java`: Handles new user registration.
-  - `ProfileActivity.java`: User profile management.
-  - `ChoiceActivity.java`: Main dashboard (Explore).
-  - `FirebaseHelper.java`: Utility class for Firestore operations.
-  - `NavigationHelper.java`: Manages bottom navigation bar states.
-- `app/src/main/res/layout/`: UI XML definitions.
-- `app/src/main/res/anim/`: Custom transition animations.
+- `app/src/main/java/com/ensab/reservaapp/`:
+  - `LoginActivity.java`: Firebase Auth login logic.
+  - `SignUpActivity.java`: User registration with Firestore integration.
+  - `ProfileActivity.java`: Cloud-synced profile management.
+  - `ChoiceActivity.java`: Main "Discover" dashboard.
+  - `FirebaseHelper.java`: Utility for Firestore cloud operations.
+  - `NavigationHelper.java`: Dynamic state management for the bottom nav bar.
+- `app/src/main/res/layout/`: Premium XML layouts.
+- `app/src/main/res/anim/`: Custom "Luxe" transition animations.
 
 ## 📄 License
 
