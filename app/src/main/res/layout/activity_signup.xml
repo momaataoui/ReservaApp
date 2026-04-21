@@ -203,6 +203,7 @@
                     app:startIconDrawable="@drawable/ic_lock"
                     app:startIconTint="#AAAAAA"
                     app:endIconMode="password_toggle"
+                    app:endIconDrawable="@drawable/ic_password_selector"
                     app:boxCornerRadiusBottomEnd="14dp"
                     app:boxCornerRadiusBottomStart="14dp"
                     app:boxCornerRadiusTopEnd="14dp"

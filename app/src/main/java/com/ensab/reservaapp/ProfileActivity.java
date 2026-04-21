@@ -9,10 +9,8 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -23,9 +21,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
-import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.bumptech.glide.Glide;
@@ -44,9 +40,8 @@ import java.util.Locale;
 
 public class ProfileActivity extends AppCompatActivity {
 
-    private TextView tvDisplayFullName, tvInfoName, tvInfoEmail, tvInfoPhone;
-    private ShapeableImageView ivProfileLarge;
-    private Button btnEdit, btnLogout;
+    private EditText etEditName, etEditPhone, etEditEmail;
+    private ShapeableImageView ivEditProfilePic;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
     private FirebaseStorage storage;
@@ -63,33 +58,25 @@ public class ProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         
         Window window = getWindow();
-        window.setStatusBarColor(Color.WHITE);
+        window.setStatusBarColor(Color.TRANSPARENT);
         WindowInsetsControllerCompat windowInsetsController = 
                 ViewCompat.getWindowInsetsController(window.getDecorView());
         if (windowInsetsController != null) {
-            windowInsetsController.setAppearanceLightStatusBars(true);
+            windowInsetsController.setAppearanceLightStatusBars(false);
         }
 
-        setContentView(R.layout.activity_profile);
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+        // Utilise le nouveau design directement comme layout de l'activité
+        setContentView(R.layout.dialog_edit_profile);
 
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
         storage = FirebaseStorage.getInstance();
         sharedPreferences = getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
 
-        ivProfileLarge = findViewById(R.id.ivProfileLarge);
-        tvDisplayFullName = findViewById(R.id.tvDisplayFullName);
-        tvInfoName = findViewById(R.id.tvInfoName);
-        tvInfoEmail = findViewById(R.id.tvInfoEmail);
-        tvInfoPhone = findViewById(R.id.tvInfoPhone);
-        btnEdit = findViewById(R.id.btnEdit);
-        btnLogout = findViewById(R.id.btnLogout);
+        etEditName = findViewById(R.id.etEditName);
+        etEditPhone = findViewById(R.id.etEditPhone);
+        etEditEmail = findViewById(R.id.etEditEmail);
+        ivEditProfilePic = findViewById(R.id.ivEditProfilePic);
 
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) {
@@ -99,18 +86,31 @@ public class ProfileActivity extends AppCompatActivity {
 
         loadUserData();
         initPhotoPickers();
-        NavigationHelper.setSelectedItem(this, R.id.navProfile);
 
-        findViewById(R.id.btnChangePhoto).setOnClickListener(v -> showPhotoOptionsDialog());
-        btnEdit.setOnClickListener(v -> showEditDialog());
-        btnLogout.setOnClickListener(v -> logoutUser());
+        findViewById(R.id.btnDialogBack).setOnClickListener(v -> finish());
+        findViewById(R.id.btnChangePic).setOnClickListener(v -> showPhotoOptionsDialog());
         
-        findViewById(R.id.btnBack).setOnClickListener(v -> {
-            finish();
-            overridePendingTransition(R.anim.fade_in, R.anim.fade_scale_out);
-        });
+        findViewById(R.id.btnSaveProfile).setOnClickListener(v -> saveProfileChanges());
+        findViewById(R.id.btnLogoutDialog).setOnClickListener(v -> logoutUser());
+    }
 
-        setupNavigation();
+    private void saveProfileChanges() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) return;
+        
+        String userId = user.getUid();
+        String newName = etEditName.getText().toString().trim();
+        String newPhone = etEditPhone.getText().toString().trim();
+        
+        if (newName.isEmpty()) {
+            Toast.makeText(this, "Name cannot be empty", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        db.collection("users").document(userId)
+            .update("fullName", newName, "phone", newPhone)
+            .addOnSuccessListener(aVoid -> Toast.makeText(this, "Profile updated", Toast.LENGTH_SHORT).show())
+            .addOnFailureListener(e -> Toast.makeText(this, "Update failed", Toast.LENGTH_SHORT).show());
     }
 
     private void goToLogin() {
@@ -148,16 +148,16 @@ public class ProfileActivity extends AppCompatActivity {
                 if (isGranted) {
                     openCamera();
                 } else {
-                    Toast.makeText(this, "Permission caméra refusée", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Camera permission denied", Toast.LENGTH_SHORT).show();
                 }
             }
         );
     }
 
     private void showPhotoOptionsDialog() {
-        String[] options = {"Prendre une photo", "Choisir de la galerie"};
+        String[] options = {"Take Photo", "Choose from Gallery"};
         new AlertDialog.Builder(this)
-            .setTitle("Changer la photo de profil")
+            .setTitle("Change Profile Picture")
             .setItems(options, (dialog, which) -> {
                 if (which == 0) {
                     checkCameraPermission();
@@ -182,7 +182,7 @@ public class ProfileActivity extends AppCompatActivity {
             cameraImageUri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", photoFile);
             cameraLauncher.launch(cameraImageUri);
         } catch (IOException e) {
-            Toast.makeText(this, "Erreur lors de la création du fichier", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "File creation error", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -213,20 +213,11 @@ public class ProfileActivity extends AppCompatActivity {
                 db.collection("users").document(userId)
                     .update("profileImage", downloadUrl)
                     .addOnSuccessListener(aVoid -> {
-                        Glide.with(this).load(downloadUrl).into(ivProfileLarge);
-                        Toast.makeText(this, "Photo de profil mise à jour", Toast.LENGTH_SHORT).show();
+                        Glide.with(this).load(downloadUrl).into(ivEditProfilePic);
+                        Toast.makeText(this, "Profile picture updated", Toast.LENGTH_SHORT).show();
                     });
             }))
-            .addOnFailureListener(e -> Toast.makeText(this, "Échec de l'upload: " + e.getMessage(), Toast.LENGTH_SHORT).show());
-    }
-
-    private void setupNavigation() {
-        findViewById(R.id.navDiscover).setOnClickListener(v -> {
-            Intent intent = new Intent(this, ChoiceActivity.class);
-            startActivity(intent);
-            overridePendingTransition(R.anim.fade_in, R.anim.fade_scale_out);
-            finish();
-        });
+            .addOnFailureListener(e -> Toast.makeText(this, "Upload failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
     private void loadUserData() {
@@ -242,51 +233,16 @@ public class ProfileActivity extends AppCompatActivity {
                     String phone = documentSnapshot.getString("phone");
                     String imageUrl = documentSnapshot.getString("profileImage");
 
-                    tvDisplayFullName.setText(fullName);
-                    tvInfoName.setText(fullName);
-                    tvInfoEmail.setText(email);
-                    tvInfoPhone.setText(phone != null && !phone.isEmpty() ? phone : "Non renseigné");
+                    etEditName.setText(fullName);
+                    etEditEmail.setText(email);
+                    etEditPhone.setText(phone != null ? phone : "");
                     
                     if (imageUrl != null && !imageUrl.isEmpty()) {
-                        Glide.with(this).load(imageUrl).into(ivProfileLarge);
+                        Glide.with(this).load(imageUrl).into(ivEditProfilePic);
                     }
                 }
             })
-            .addOnFailureListener(e -> Toast.makeText(this, "Erreur de chargement", Toast.LENGTH_SHORT).show());
-    }
-
-    private void showEditDialog() {
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user == null) return;
-        
-        String userId = user.getUid();
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_edit_profile, null);
-        builder.setView(dialogView);
-        
-        EditText etEditName = dialogView.findViewById(R.id.etEditName);
-        EditText etEditPhone = dialogView.findViewById(R.id.etEditPhone);
-        
-        etEditName.setText(tvInfoName.getText());
-        etEditPhone.setText(tvInfoPhone.getText().equals("Non renseigné") ? "" : tvInfoPhone.getText());
-
-        builder.setPositiveButton("Enregistrer", (dialog, which) -> {
-            String newName = etEditName.getText().toString().trim();
-            String newPhone = etEditPhone.getText().toString().trim();
-            if (newName.isEmpty()) {
-                Toast.makeText(this, "Le nom ne peut pas être vide", Toast.LENGTH_SHORT).show();
-            } else {
-                db.collection("users").document(userId)
-                    .update("fullName", newName, "phone", newPhone)
-                    .addOnSuccessListener(aVoid -> {
-                        loadUserData();
-                        Toast.makeText(this, "Profil mis à jour", Toast.LENGTH_SHORT).show();
-                    })
-                    .addOnFailureListener(e -> Toast.makeText(this, "Échec de la mise à jour", Toast.LENGTH_SHORT).show());
-            }
-        });
-        builder.setNegativeButton("Annuler", null);
-        builder.create().show();
+            .addOnFailureListener(e -> Toast.makeText(this, "Error loading data", Toast.LENGTH_SHORT).show());
     }
 
     private void logoutUser() {

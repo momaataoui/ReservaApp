@@ -2,7 +2,30 @@
     <style name="Base.Theme.ReservaApp" parent="Theme.Material3.Light.NoActionBar">
         <item name="android:windowBackground">@color/white</item>
         <item name="colorPrimary">@color/black</item>
+        <item name="colorOnPrimary">@color/white</item>
         <item name="colorSurface">@color/white</item>
+        <item name="colorOnSurface">@color/black</item>
+
+        <!-- Background and Accent colors -->
+        <item name="android:colorBackground">@color/white</item>
+        <item name="colorSecondary">@color/black</item>
+        <item name="colorTertiary">@color/black</item>
+        <item name="colorAccent">@color/black</item>
+        <item name="colorOutline">#E0E0E0</item>
+
+        <!-- Material 3 Input Field Colors -->
+        <item name="colorPrimaryContainer">@color/white</item>
+        <item name="colorOnPrimaryContainer">@color/black</item>
+        <item name="colorSecondaryContainer">#F5F5F5</item>
+
+        <!-- 🔥 IMPORTANT : Removing the Purple/Violet selection and cursor completely -->
+        <item name="android:colorControlActivated">@color/black</item>
+        <item name="android:colorControlHighlight">#20000000</item>
+        <item name="android:textCursorDrawable">@null</item>
+        <item name="android:textColorHighlight">#40000000</item>
+
+        <!-- Password toggle icon color -->
+        <item name="passwordToggleTint">@color/black</item>
 
         <!-- Activer les transitions Material 3 -->
         <item name="android:windowActivityTransitions">true</item>
