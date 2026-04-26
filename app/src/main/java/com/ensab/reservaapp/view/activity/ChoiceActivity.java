@@ -1,4 +1,4 @@
-package com.ensab.reservaapp;
+package com.ensab.reservaapp.view.activity;
 
 import android.content.Intent;
 import android.graphics.Color;
@@ -12,6 +12,10 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
+
+import com.ensab.reservaapp.R;
+import com.ensab.reservaapp.data.FirebaseHelper;
+import com.ensab.reservaapp.data.NavigationHelper;
 import com.google.android.material.card.MaterialCardView;
 
 public class ChoiceActivity extends AppCompatActivity {
@@ -32,15 +36,17 @@ public class ChoiceActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_choice);
         
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+        View root = findViewById(R.id.main);
+        if (root != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
+                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0);
+                return insets;
+            });
+        }
 
         firebaseHelper = new FirebaseHelper();
         
-        // Ensure some data exists in Firestore for the app to function
         firebaseHelper.insertSampleDataIfEmpty(new FirebaseHelper.Callback<Void>() {
             @Override
             public void onSuccess(Void result) {
@@ -61,37 +67,35 @@ public class ChoiceActivity extends AppCompatActivity {
     private void setupCards() {
         MaterialCardView cardHotels = findViewById(R.id.cardHotels);
         MaterialCardView cardRestaurants = findViewById(R.id.cardRestaurants);
+        MaterialCardView cardSmartAI = findViewById(R.id.cardSmartAI);
 
         if (cardHotels != null) {
-            cardHotels.setOnClickListener(v -> {
-                Toast.makeText(this, "Hotels Selected", Toast.LENGTH_SHORT).show();
-            });
+            cardHotels.setOnClickListener(v -> NavigationHelper.fastNavigate(this, HotelListActivity.class));
         }
 
         if (cardRestaurants != null) {
-            cardRestaurants.setOnClickListener(v -> Toast.makeText(this, "Restaurants Selected", Toast.LENGTH_SHORT).show());
+            cardRestaurants.setOnClickListener(v -> Toast.makeText(this, "Coming Soon", Toast.LENGTH_SHORT).show());
+        }
+
+        if (cardSmartAI != null) {
+            cardSmartAI.setOnClickListener(v -> NavigationHelper.fastNavigate(this, SmartSearchActivity.class));
         }
     }
 
     private void setupNavigation() {
         View navProfile = findViewById(R.id.navProfile);
         if (navProfile != null) {
-            navProfile.setOnClickListener(v -> navigateToProfile());
-        }
-
-        View ivProfile = findViewById(R.id.ivProfile);
-        if (ivProfile != null) {
-            ivProfile.setOnClickListener(v -> navigateToProfile());
+            navProfile.setOnClickListener(v -> NavigationHelper.fastNavigate(this, ProfileActivity.class));
         }
 
         View navSaved = findViewById(R.id.navSaved);
         if (navSaved != null) {
-            navSaved.setOnClickListener(v -> Toast.makeText(this, "Wishlists coming soon", Toast.LENGTH_SHORT).show());
+            navSaved.setOnClickListener(v -> NavigationHelper.fastNavigate(this, WishlistActivity.class));
         }
 
         View navBookings = findViewById(R.id.navBookings);
         if (navBookings != null) {
-            navBookings.setOnClickListener(v -> Toast.makeText(this, "Trips coming soon", Toast.LENGTH_SHORT).show());
+            navBookings.setOnClickListener(v -> NavigationHelper.fastNavigate(this, MyBookingsActivity.class));
         }
         
         View navDiscover = findViewById(R.id.navDiscover);
@@ -100,11 +104,5 @@ public class ChoiceActivity extends AppCompatActivity {
                 // Already on Discover
             });
         }
-    }
-
-    private void navigateToProfile() {
-        Intent intent = new Intent(this, ProfileActivity.class);
-        startActivity(intent);
-        overridePendingTransition(R.anim.fade_scale_in, R.anim.fade_out);
     }
 }

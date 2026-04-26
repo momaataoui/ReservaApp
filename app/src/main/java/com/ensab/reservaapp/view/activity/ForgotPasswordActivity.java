@@ -1,4 +1,4 @@
-package com.ensab.reservaapp;
+package com.ensab.reservaapp.view.activity;
 
 import android.os.Bundle;
 import android.util.Patterns;
@@ -7,6 +7,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import com.ensab.reservaapp.R;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class ForgotPasswordActivity extends AppCompatActivity {
@@ -45,10 +46,10 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         mAuth.sendPasswordResetEmail(email)
             .addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
-                    Toast.makeText(ForgotPasswordActivity.this, "Reset email sent! Check your inbox.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, "Reset email sent! Check your inbox.", Toast.LENGTH_LONG).show();
                     finish();
                 } else {
-                    Toast.makeText(ForgotPasswordActivity.this, "Error: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Error: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
     }

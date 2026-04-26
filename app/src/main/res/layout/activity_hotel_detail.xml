@@ -1,0 +1,673 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white">
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:paddingBottom="100dp"
+        android:clipToPadding="false">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- Custom Header Area -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnBack"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:padding="0dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    app:icon="@drawable/ic_arrow_back"
+                    app:iconGravity="textStart"
+                    app:iconPadding="0dp"
+                    app:iconSize="24dp"
+                    app:iconTint="@color/black" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Smart Reserva AI"
+                        android:textColor="@color/black"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Votre assistant réservation d'hôtel"
+                        android:textColor="#717171"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/ic_menu"
+                    app:tint="@color/black" />
+            </RelativeLayout>
+
+            <TextView
+                android:id="@+id/tvHotelName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="Détails de l'hôtel"
+                android:textColor="@color/black"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvLocationHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Le Marais, Paris • 1,2 km du centre"
+                android:textColor="#717171"
+                android:textSize="14sp" />
+
+            <!-- Images Section -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp">
+                <ImageView
+                    android:id="@+id/ivHeroImage"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/mamounia" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="0dp">
+                    <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:src="@drawable/hotel_acceuil" />
+                </com.google.android.material.card.MaterialCardView>
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="0dp">
+                    <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:src="@drawable/hero_hotel" />
+                </com.google.android.material.card.MaterialCardView>
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="0dp">
+                    <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent">
+                        <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:src="@drawable/mamounia" />
+                        <View android:layout_width="match_parent" android:layout_height="match_parent" android:background="#80000000" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:text="+18\nphotos" android:gravity="center" android:textColor="@color/white" android:textSize="12sp" android:textStyle="bold" />
+                    </FrameLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+
+            <!-- Name and Share -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp">
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:orientation="horizontal">
+                        <ImageView android:layout_width="14dp" android:layout_height="14dp" android:src="@android:drawable/star_on" app:tint="@color/black" />
+                        <ImageView android:layout_width="14dp" android:layout_height="14dp" android:src="@android:drawable/star_on" app:tint="@color/black" />
+                        <ImageView android:layout_width="14dp" android:layout_height="14dp" android:src="@android:drawable/star_on" app:tint="@color/black" />
+                        <ImageView android:layout_width="14dp" android:layout_height="14dp" android:src="@android:drawable/star_on" app:tint="@color/black" />
+                        <ImageView android:layout_width="14dp" android:layout_height="14dp" android:src="@android:drawable/star_off" app:tint="#D1D1D1" />
+                    </LinearLayout>
+                </LinearLayout>
+            </RelativeLayout>
+
+            <!-- Rating badge -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:cardBackgroundColor="@color/black"
+                    app:cardCornerRadius="4dp"
+                    app:strokeWidth="0dp">
+                    <TextView
+                        android:id="@+id/tvRating"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="6dp"
+                        android:paddingVertical="2dp"
+                        android:text="4,7"
+                        android:textColor="@color/white"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </com.google.android.material.card.MaterialCardView>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="Excellent"
+                    android:textColor="@color/black"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+                <TextView
+                    android:id="@+id/tvReviewCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:text="(1289 avis)"
+                    android:textColor="#717171"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <!-- Amenities Grid -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:orientation="horizontal">
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
+                    <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_discover" app:tint="@color/black" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="Wi-Fi gratuit" android:textSize="10sp" android:textColor="#717171" />
+                </LinearLayout>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
+                    <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_bookings" app:tint="@color/black" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="Petit-déjeuner" android:textSize="10sp" android:textColor="#717171" />
+                </LinearLayout>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
+                    <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_saved" app:tint="@color/black" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="Climatisation" android:textSize="10sp" android:textColor="#717171" />
+                </LinearLayout>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
+                    <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_profile" app:tint="@color/black" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="Salle de sport" android:textSize="10sp" android:textColor="#717171" />
+                </LinearLayout>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:orientation="vertical"/>
+            </LinearLayout>
+
+            <!-- Description Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#F0F0F0"
+                app:strokeWidth="1dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="À propos de l'établissement"
+                        android:textColor="@color/black"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/tvDescription"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:lineSpacingMultiplier="1.2"
+                        android:text="Charmant hôtel 4 étoiles au cœur du Marais. Chambres élégantes, service attentionné et emplacement idéal pour découvrir Paris."
+                        android:textColor="#444444"
+                        android:textSize="14sp" />
+                    <LinearLayout
+                        android:id="@+id/llReadMore"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Voir plus"
+                            android:textColor="@color/black"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                        <ImageView
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:layout_marginStart="4dp"
+                            android:src="@android:drawable/arrow_down_float"
+                            app:tint="@color/black" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Dates and Guests Selection -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="Choisissez vos dates et voyageurs"
+                android:textColor="@color/black"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="horizontal">
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cvCheckIn"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="#F0F0F0"
+                    app:strokeWidth="1dp">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="12dp">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Arrivée" android:textSize="11sp" android:textColor="#717171" />
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="4dp">
+                            <ImageView android:layout_width="16dp" android:layout_height="16dp" android:src="@drawable/ic_bookings_outline" app:tint="@color/black" />
+                            <TextView android:id="@+id/tvCheckInDate" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="6dp" android:text="12 mai 2025" android:textColor="@color/black" android:textSize="12sp" android:textStyle="bold" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cvCheckOut"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="#F0F0F0"
+                    app:strokeWidth="1dp">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="12dp">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Départ" android:textSize="11sp" android:textColor="#717171" />
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="4dp">
+                            <ImageView android:layout_width="16dp" android:layout_height="16dp" android:src="@drawable/ic_bookings_outline" app:tint="@color/black" />
+                            <TextView android:id="@+id/tvCheckOutDate" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="6dp" android:text="13 mai 2025" android:textColor="@color/black" android:textSize="12sp" android:textStyle="bold" />
+                        </LinearLayout>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="1 nuit" android:textSize="10sp" android:textColor="#717171" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cvGuests"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="#F0F0F0"
+                    app:strokeWidth="1dp">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="12dp">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Voyageurs" android:textSize="11sp" android:textColor="#717171" />
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="4dp">
+                            <ImageView android:layout_width="16dp" android:layout_height="16dp" android:src="@drawable/ic_profile" app:tint="@color/black" />
+                            <TextView android:id="@+id/tvGuests" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="6dp" android:text="2 adlt, 1 enf" android:textColor="@color/black" android:textSize="12sp" android:textStyle="bold" android:ellipsize="end" android:maxLines="1" />
+                        </LinearLayout>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="1 chambre" android:textSize="10sp" android:textColor="#717171" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+
+            <!-- Price Summary -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#F0F0F0"
+                app:strokeWidth="1dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Résumé du prix" android:textStyle="bold" android:textColor="@color/black" />
+                    <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp">
+                        <TextView android:id="@+id/tvPriceSummaryLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Séjour (1 nuit)" android:textColor="#717171" />
+                        <TextView android:id="@+id/tvPriceSummaryAmount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="189,00 €" android:textColor="@color/black" />
+                    </RelativeLayout>
+                    <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Taxes et frais" android:textColor="#717171" />
+                        <TextView android:id="@+id/tvPriceSummaryTaxes" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="18,90 €" android:textColor="@color/black" />
+                    </RelativeLayout>
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#F0F0F0" android:layout_marginVertical="12dp" />
+                    <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Total" android:textSize="16sp" android:textStyle="bold" android:textColor="@color/black" />
+                        <TextView android:id="@+id/tvPriceSummaryTotal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="207,90 €" android:textSize="16sp" android:textStyle="bold" android:textColor="@color/black" />
+                    </RelativeLayout>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Taxes et frais inclus" android:textSize="12sp" android:textColor="#717171" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Number of Beds Selector -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#F0F0F0"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Configuration des lits"
+                        android:textColor="@color/black"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Choisissez votre répartition (max 5 lits au total)."
+                        android:textColor="#717171"
+                        android:textSize="12sp"
+                        android:layout_marginTop="4dp" />
+
+                    <!-- Lits individuels -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginTop="16dp">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_bookings_outline"
+                            app:tint="@color/black" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="12dp"
+                            android:text="Lits simples"
+                            android:textColor="@color/black"
+                            android:textSize="14sp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnBedsMinus"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:minWidth="0dp"
+                            android:minHeight="0dp"
+                            android:padding="0dp"
+                            android:text="−"
+                            android:textColor="@color/black"
+                            app:strokeColor="#CCCCCC"
+                            app:cornerRadius="16dp" />
+
+                        <TextView
+                            android:id="@+id/tvBedsCount"
+                            android:layout_width="36dp"
+                            android:layout_height="wrap_content"
+                            android:text="1"
+                            android:gravity="center"
+                            android:textStyle="bold"
+                            android:textColor="@color/black"
+                            android:textSize="15sp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnBedsPlus"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:minWidth="0dp"
+                            android:minHeight="0dp"
+                            android:padding="0dp"
+                            android:text="+"
+                            android:textColor="@color/white"
+                            android:backgroundTint="@color/black"
+                            app:cornerRadius="16dp" />
+                    </LinearLayout>
+
+                    <!-- Lits doubles -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginTop="12dp">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_bookings"
+                            app:tint="@color/black" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="12dp"
+                            android:text="Lits doubles"
+                            android:textColor="@color/black"
+                            android:textSize="14sp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnDoubleBedsMinus"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:minWidth="0dp"
+                            android:minHeight="0dp"
+                            android:padding="0dp"
+                            android:text="−"
+                            android:textColor="@color/black"
+                            app:strokeColor="#CCCCCC"
+                            app:cornerRadius="16dp" />
+
+                        <TextView
+                            android:id="@+id/tvDoubleBedsCount"
+                            android:layout_width="36dp"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:gravity="center"
+                            android:textStyle="bold"
+                            android:textColor="@color/black"
+                            android:textSize="15sp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnDoubleBedsPlus"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:minWidth="0dp"
+                            android:minHeight="0dp"
+                            android:padding="0dp"
+                            android:text="+"
+                            android:textColor="@color/white"
+                            android:backgroundTint="@color/black"
+                            app:cornerRadius="16dp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:paddingVertical="12dp"/>
+
+            <!-- Emplacement and Reviews -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="horizontal">
+
+                <!-- Emplacement -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                    app:cardCornerRadius="16dp" app:cardElevation="0dp" app:strokeColor="#F0F0F0" app:strokeWidth="1dp">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center_vertical">
+                            <ImageView android:layout_width="16dp" android:layout_height="16dp" android:src="@drawable/ic_discover" app:tint="@color/black" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:text="Emplacement" android:textStyle="bold" android:textColor="@color/black" />
+                        </LinearLayout>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Le Marais, 75003 Paris, France" android:textSize="11sp" android:textColor="#717171" />
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:gravity="center_vertical">
+                            <ImageView android:layout_width="14dp" android:layout_height="14dp" android:src="@drawable/ic_profile" app:tint="#717171" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:text="5 min à pied du Musée Picasso" android:textSize="10sp" android:textColor="#717171" />
+                        </LinearLayout>
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:gravity="center_vertical">
+                            <ImageView android:layout_width="14dp" android:layout_height="14dp" android:src="@drawable/ic_profile" app:tint="#717171" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:text="10 min à pied de la Place des Vosges" android:textSize="10sp" android:textColor="#717171" />
+                        </LinearLayout>
+                        <com.google.android.material.button.MaterialButton
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="wrap_content" android:layout_height="32dp"
+                            android:layout_marginTop="12dp" android:text="Voir sur la carte" android:textAllCaps="false" android:textSize="10sp"
+                            android:textColor="@color/black" app:strokeColor="#D1D1D1" app:cornerRadius="8dp" android:paddingHorizontal="12dp" android:minHeight="0dp" android:minWidth="0dp"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Avis clients -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    app:cardCornerRadius="16dp" app:cardElevation="0dp" app:strokeColor="#F0F0F0" app:strokeWidth="1dp">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Avis clients" android:textStyle="bold" android:textColor="@color/black" />
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:gravity="bottom">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="4,7/5" android:textSize="18sp" android:textStyle="bold" android:textColor="@color/black" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="4dp" android:text="Excellent" android:textSize="11sp" android:textColor="@color/black" />
+                        </LinearLayout>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Basé sur 1289 avis" android:textSize="10sp" android:textColor="#717171" />
+
+                        <!-- Propreté -->
+                        <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Propreté" android:textSize="10sp" android:textColor="#717171" />
+                            <LinearLayout android:layout_width="50dp" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:gravity="center_vertical">
+                                <View android:layout_width="40dp" android:layout_height="3dp" android:background="@color/black" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="4dp" android:text="4,8" android:textSize="9sp" android:textColor="@color/black" />
+                            </LinearLayout>
+                        </RelativeLayout>
+                        <!-- Confort -->
+                        <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Confort" android:textSize="10sp" android:textColor="#717171" />
+                            <LinearLayout android:layout_width="50dp" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:gravity="center_vertical">
+                                <View android:layout_width="38dp" android:layout_height="3dp" android:background="@color/black" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="4dp" android:text="4,7" android:textSize="9sp" android:textColor="@color/black" />
+                            </LinearLayout>
+                        </RelativeLayout>
+
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:gravity="center_vertical">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Voir tous les avis" android:textSize="11sp" android:textStyle="bold" android:textColor="@color/black" />
+                            <ImageView android:layout_width="12dp" android:layout_height="12dp" android:layout_marginStart="4dp" android:src="@android:drawable/arrow_up_float" android:rotation="90" app:tint="@color/black" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Fixed Bottom Bar -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        app:cardElevation="16dp"
+        app:cardCornerRadius="0dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:gravity="center_vertical">
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Total (1 nuit)" android:textSize="11sp" android:textColor="#717171" />
+                <TextView android:id="@+id/tvTotalPrice" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="207,90 €" android:textColor="@color/black" android:textSize="20sp" android:textStyle="bold" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Taxes et frais inclus" android:textSize="10sp" android:textColor="#717171" />
+            </LinearLayout>
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cvFavorite"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginEnd="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#D1D1D1"
+                app:strokeWidth="1dp">
+                <ImageView
+                    android:id="@+id/btnFavorite"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="12dp"
+                    android:src="@drawable/ic_saved"
+                    app:tint="@color/black" />
+            </com.google.android.material.card.MaterialCardView>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCheckAvailability"
+                android:layout_width="wrap_content"
+                android:layout_height="52dp"
+                android:text="Réserver maintenant"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                app:cornerRadius="12dp"
+                android:backgroundTint="@color/black"
+                android:paddingHorizontal="24dp"/>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp"
+    android:paddingTop="24dp"
+    android:paddingBottom="32dp"
+    android:background="@color/white">
+
+    <!-- Handle bar -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="24dp"
+        android:background="#CCCCCC"
+        android:backgroundTint="#CCCCCC" />
+
+    <!-- Titre -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Récapitulatif"
+        android:textColor="#1A1A1A"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="20dp" />
+
+    <!-- Nom de l'hôtel -->
+    <TextView
+        android:id="@+id/bsHotelName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="La Mamounia Marrakech"
+        android:textColor="#1A1A1A"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#F0F0F0"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Check-in -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="10dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Arrivée"
+            android:textColor="#757575"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/bsCheckIn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="May 20, 2025"
+            android:textColor="#1A1A1A"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Check-out -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="10dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Départ"
+            android:textColor="#757575"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/bsCheckOut"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="May 22, 2025"
+            android:textColor="#1A1A1A"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Nuits -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="10dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Durée"
+            android:textColor="#757575"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/bsNights"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2 nuits"
+            android:textColor="#1A1A1A"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Voyageurs -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Voyageurs"
+            android:textColor="#757575"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/bsGuests"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2 adultes"
+            android:textColor="#1A1A1A"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#F0F0F0"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Total -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="24dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Total"
+            android:textColor="#1A1A1A"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/bsTotalPrice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="4 900 MAD"
+            android:textColor="#1A1A1A"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Bouton Confirmer -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnConfirmBooking"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="Confirmer la réservation"
+        android:textColor="#FFFFFF"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:backgroundTint="#1A1A1A"
+        app:cornerRadius="28dp" />
+
+    <!-- Bouton Annuler -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnCancelBooking"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="10dp"
+        android:text="Annuler"
+        android:textColor="#1A1A1A"
+        android:textSize="15sp"
+        app:strokeColor="#CCCCCC"
+        app:cornerRadius="28dp" />
+
+</LinearLayout>

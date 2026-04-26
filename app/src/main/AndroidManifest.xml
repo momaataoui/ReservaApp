@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" android:minSdkVersion="33" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
@@ -27,7 +28,7 @@
         </provider>
 
         <activity
-            android:name=".LoginActivity"
+            android:name=".view.activity.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -35,17 +36,31 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".SignUpActivity"
+            android:name=".view.activity.SignUpActivity"
             android:exported="false" />
         <activity
-            android:name=".ForgotPasswordActivity"
+            android:name=".view.activity.ForgotPasswordActivity"
             android:exported="false" />
         <activity
-            android:name=".ChoiceActivity"
+            android:name=".view.activity.ChoiceActivity"
             android:exported="false" />
         <activity
-            android:name=".ProfileActivity"
+            android:name=".view.activity.ProfileActivity"
             android:exported="false" />
+        <activity
+            android:name=".view.activity.HotelListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.activity.HotelDetailActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".view.activity.WishlistActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.activity.SmartSearchActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
     </application>
 
 </manifest>

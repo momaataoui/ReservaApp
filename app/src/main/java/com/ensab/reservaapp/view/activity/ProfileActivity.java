@@ -1,4 +1,4 @@
-package com.ensab.reservaapp;
+package com.ensab.reservaapp.view.activity;
 
 import android.Manifest;
 import android.content.Context;
@@ -9,22 +9,26 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.view.View;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Window;
 import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
-import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.bumptech.glide.Glide;
+import com.ensab.reservaapp.R;
+import com.ensab.reservaapp.data.NavigationHelper;
+import com.ensab.reservaapp.viewmodel.ProfileViewModel;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -48,7 +52,9 @@ public class ProfileActivity extends AppCompatActivity {
     private SharedPreferences sharedPreferences;
     private static final String SHARED_PREF_NAME = "user_session";
 
-    private ActivityResultLauncher<Intent> galleryLauncher;
+    private ProfileViewModel viewModel;
+
+    private ActivityResultLauncher<PickVisualMediaRequest> galleryLauncher;
     private ActivityResultLauncher<Uri> cameraLauncher;
     private ActivityResultLauncher<String> permissionLauncher;
     private Uri cameraImageUri;
@@ -60,18 +66,18 @@ public class ProfileActivity extends AppCompatActivity {
         Window window = getWindow();
         window.setStatusBarColor(Color.TRANSPARENT);
         WindowInsetsControllerCompat windowInsetsController = 
-                ViewCompat.getWindowInsetsController(window.getDecorView());
-        if (windowInsetsController != null) {
-            windowInsetsController.setAppearanceLightStatusBars(false);
-        }
+                WindowCompat.getInsetsController(window, window.getDecorView());
+        windowInsetsController.setAppearanceLightStatusBars(false);
 
-        // Utilise le nouveau design directement comme layout de l'activité
         setContentView(R.layout.dialog_edit_profile);
 
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
         storage = FirebaseStorage.getInstance();
         sharedPreferences = getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
+
+        // Initialisation du ViewModel
+        viewModel = new ViewModelProvider(this).get(ProfileViewModel.class);
 
         etEditName = findViewById(R.id.etEditName);
         etEditPhone = findViewById(R.id.etEditPhone);
@@ -84,14 +90,57 @@ public class ProfileActivity extends AppCompatActivity {
             return;
         }
 
-        loadUserData();
+        // Si les données sont déjà dans le ViewModel (après rotation), on les restaure
+        if (viewModel.isDataLoaded()) {
+            restoreDataFromViewModel();
+        } else {
+            loadUserData();
+        }
+
+        setupTextWatchers();
         initPhotoPickers();
 
-        findViewById(R.id.btnDialogBack).setOnClickListener(v -> finish());
         findViewById(R.id.btnChangePic).setOnClickListener(v -> showPhotoOptionsDialog());
-        
         findViewById(R.id.btnSaveProfile).setOnClickListener(v -> saveProfileChanges());
         findViewById(R.id.btnLogoutDialog).setOnClickListener(v -> logoutUser());
+
+        NavigationHelper.setSelectedItem(this, R.id.navProfile);
+        setupNavigation();
+    }
+
+    private void setupTextWatchers() {
+        etEditName.addTextChangedListener(new SimpleTextWatcher() {
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                viewModel.name.setValue(s.toString());
+            }
+        });
+
+        etEditPhone.addTextChangedListener(new SimpleTextWatcher() {
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                viewModel.phone.setValue(s.toString());
+            }
+        });
+    }
+
+    private void restoreDataFromViewModel() {
+        etEditName.setText(viewModel.name.getValue());
+        etEditEmail.setText(viewModel.email.getValue());
+        etEditPhone.setText(viewModel.phone.getValue());
+        
+        String imageUrl = viewModel.profileImageUrl.getValue();
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            Glide.with(this).load(imageUrl).into(ivEditProfilePic);
+        }
+    }
+
+    private void setupNavigation() {
+        findViewById(R.id.navDiscover).setOnClickListener(v -> NavigationHelper.fastNavigate(this, ChoiceActivity.class));
+        findViewById(R.id.navSaved).setOnClickListener(v -> NavigationHelper.fastNavigate(this, WishlistActivity.class));
+        findViewById(R.id.navBookings).setOnClickListener(v -> {
+            Toast.makeText(this, "Trips coming soon", Toast.LENGTH_SHORT).show();
+        });
     }
 
     private void saveProfileChanges() {
@@ -122,13 +171,10 @@ public class ProfileActivity extends AppCompatActivity {
 
     private void initPhotoPickers() {
         galleryLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
-                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                    Uri imageUri = result.getData().getData();
-                    if (imageUri != null) {
-                        uploadProfileImage(imageUri);
-                    }
+            new ActivityResultContracts.PickVisualMedia(),
+            uri -> {
+                if (uri != null) {
+                    uploadProfileImage(uri);
                 }
             }
         );
@@ -194,10 +240,9 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void openGallery() {
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("image/*");
-        galleryLauncher.launch(intent);
+        galleryLauncher.launch(new PickVisualMediaRequest.Builder()
+                .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
+                .build());
     }
 
     private void uploadProfileImage(Uri imageUri) {
@@ -213,6 +258,7 @@ public class ProfileActivity extends AppCompatActivity {
                 db.collection("users").document(userId)
                     .update("profileImage", downloadUrl)
                     .addOnSuccessListener(aVoid -> {
+                        viewModel.profileImageUrl.setValue(downloadUrl);
                         Glide.with(this).load(downloadUrl).into(ivEditProfilePic);
                         Toast.makeText(this, "Profile picture updated", Toast.LENGTH_SHORT).show();
                     });
@@ -233,13 +279,13 @@ public class ProfileActivity extends AppCompatActivity {
                     String phone = documentSnapshot.getString("phone");
                     String imageUrl = documentSnapshot.getString("profileImage");
 
-                    etEditName.setText(fullName);
-                    etEditEmail.setText(email);
-                    etEditPhone.setText(phone != null ? phone : "");
-                    
-                    if (imageUrl != null && !imageUrl.isEmpty()) {
-                        Glide.with(this).load(imageUrl).into(ivEditProfilePic);
-                    }
+                    viewModel.name.setValue(fullName);
+                    viewModel.email.setValue(email);
+                    viewModel.phone.setValue(phone != null ? phone : "");
+                    viewModel.profileImageUrl.setValue(imageUrl != null ? imageUrl : "");
+                    viewModel.setDataLoaded(true);
+
+                    restoreDataFromViewModel();
                 }
             })
             .addOnFailureListener(e -> Toast.makeText(this, "Error loading data", Toast.LENGTH_SHORT).show());
@@ -251,5 +297,12 @@ public class ProfileActivity extends AppCompatActivity {
         editor.clear();
         editor.apply();
         goToLogin();
+    }
+
+    private abstract static class SimpleTextWatcher implements TextWatcher {
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+        @Override
+        public void afterTextChanged(Editable s) {}
     }
 }

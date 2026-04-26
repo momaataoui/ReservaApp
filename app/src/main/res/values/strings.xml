@@ -44,4 +44,7 @@
     <string name="nav_bookings">BOOKINGS</string>
     <string name="nav_saved">SAVED</string>
     <string name="nav_profile">PROFILE</string>
+
+    <!-- Google Sign-In -->
+    <string name="default_web_client_id">106752576459-dss93oajhj921ju7uudla3i555kf486c.apps.googleusercontent.com</string>
 </resources>

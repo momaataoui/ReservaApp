@@ -1,4 +1,4 @@
-package com.ensab.reservaapp;
+package com.ensab.reservaapp.view.activity;
 
 import android.os.Bundle;
 import android.util.Patterns;
@@ -7,6 +7,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import com.ensab.reservaapp.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -42,11 +43,11 @@ public class SignUpActivity extends AppCompatActivity {
             String password = etPassword.getText().toString().trim();
 
             if (fullName.isEmpty() || email.isEmpty() || phone.isEmpty() || password.isEmpty()) {
-                Toast.makeText(SignUpActivity.this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
             } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                Toast.makeText(SignUpActivity.this, "Please enter a valid email", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Please enter a valid email", Toast.LENGTH_SHORT).show();
             } else if (password.length() < 6) {
-                Toast.makeText(SignUpActivity.this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
             } else {
                 registerUser(fullName, email, phone, password);
             }
@@ -61,18 +62,17 @@ public class SignUpActivity extends AppCompatActivity {
                 if (task.isSuccessful()) {
                     FirebaseUser user = mAuth.getCurrentUser();
                     if (user != null) {
-                        // Send verification email
                         user.sendEmailVerification()
                             .addOnCompleteListener(verifyTask -> {
                                 if (verifyTask.isSuccessful()) {
                                     saveUserToFirestore(user.getUid(), fullName, email, phone);
                                 } else {
-                                    Toast.makeText(SignUpActivity.this, "Failed to send verification email.", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(this, "Failed to send verification email.", Toast.LENGTH_SHORT).show();
                                 }
                             });
                     }
                 } else {
-                    Toast.makeText(SignUpActivity.this, "Authentication failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Authentication failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
     }
@@ -82,15 +82,16 @@ public class SignUpActivity extends AppCompatActivity {
         user.put("fullName", fullName);
         user.put("email", email);
         user.put("phone", phone);
+        user.put("role", "client");
         user.put("profileImage", "");
 
         db.collection("users").document(userId)
             .set(user)
             .addOnSuccessListener(aVoid -> {
-                Toast.makeText(SignUpActivity.this, "Registration Successful. Please check your email for verification.", Toast.LENGTH_LONG).show();
-                mAuth.signOut(); // Force user to log in after verification
+                Toast.makeText(this, "Registration Successful. Please check your email for verification.", Toast.LENGTH_LONG).show();
+                mAuth.signOut();
                 finish();
             })
-            .addOnFailureListener(e -> Toast.makeText(SignUpActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+            .addOnFailureListener(e -> Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 }

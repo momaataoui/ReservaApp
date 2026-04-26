@@ -13,6 +13,9 @@
         <item name="colorAccent">@color/black</item>
         <item name="colorOutline">#E0E0E0</item>
 
+        <!-- Font style: Clean and Simple -->
+        <item name="android:fontFamily">sans-serif</item>
+
         <!-- Material 3 Input Field Colors -->
         <item name="colorPrimaryContainer">@color/white</item>
         <item name="colorOnPrimaryContainer">@color/black</item>
