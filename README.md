@@ -1,56 +1,61 @@
-# ReservaApp - Luxe Escape
+# ReservaApp - Luxe Escape 🏨
 
-ReservaApp est une application Android premium de réservation d'hôtels et de restaurants, conçue avec un accent particulier sur l'expérience utilisateur haut de gamme et les principes de design modernes.
+ReservaApp est une application Android premium de réservation d'hôtels et de restaurants au Maroc, conçue avec un accent particulier sur l'expérience utilisateur haut de gamme et les principes de design modernes.
 
-## 🚀 Fonctionnalités
+---
 
-- **Authentification Sécurisée** : Inscription (avec nom, email, téléphone), connexion et réinitialisation de mot de passe via Firebase Auth.
-- **Expérience Visuelle Premium** :
-  - Design épuré et minimaliste (inspiré par Airbnb/LinkedIn).
-  - **Correction Dark Mode** : Interface d'authentification optimisée pour rester élégante et lisible quel que soit le mode du système.
-  - Bouton de connexion sociale (Google) personnalisé.
-  - Transitions fluides (Fade & Scale-up) entre les écrans.
-- **Gestion de Profil Dynamique** : Profil utilisateur complet avec synchronisation en temps réel (nom, téléphone) et gestion d'image de profil (Galerie/Appareil photo).
-- **Base de Données Cloud** : Synchronisation en temps réel via Cloud Firestore.
-- **Navigation Intuitive** : Barre de navigation personnalisée avec indicateurs de sélection dynamiques.
+## 📢 État d'Avancement (Côté Client)
 
-## 🛠 Stack Technique
+Toute la base client et l'infrastructure de sécurité ont été refactorisées et sécurisées.
 
-- **Langage** : Java
-- **Architecture UI** : XML Layouts avec Material Components (Material 3)
-- **Backend** : Firebase (Authentication, Firestore, Storage)
-- **Chargement d'Images** : Glide
-- **Outils** : Android Studio, Gradle, Git
+### ✅ Réalisations Récentes
+- **Architecture Propre** : Migration vers une structure MVVM avec des packages organisés (`data`, `model`, `view`, `viewmodel`).
+- **Sécurité API** : La clé Gemini AI a été retirée du code source et est maintenant gérée via `local.properties` et `BuildConfig`.
+- **Logique de Prix** : Passage à la monnaie **DH (Dirham)** avec des tarifs réalistes (900 DH - 1500 DH) et calcul automatique des suppléments.
+- **Synchronisation Firestore** : 
+    - Le modèle `Booking` inclut désormais le `hotelId` pour permettre le suivi admin.
+    - La **Wishlist** est entièrement synchronisée avec Firestore et gère les erreurs de données.
+- **Rôles Utilisateurs** : Le système de connexion détecte désormais si l'utilisateur est un `admin` ou un `user` via Firestore.
 
-## 📦 Installation & Configuration
+---
 
-1. **Cloner le dépôt** :
-   ```bash
-   git clone https://github.com/momaataoui/ReservaApp.git
+## 🛠 Instructions pour le Collaborateur (Partie Admin)
+
+Bienvenue sur le projet ! Voici comment démarrer et ce qu'il reste à accomplir.
+
+### 1. Configuration Initiale
+Avant de compiler, assure-toi d'avoir ces deux fichiers :
+1. **`google-services.json`** : À placer dans le dossier `app/` (indispensable pour Firebase).
+2. **`local.properties`** : Ajoute la clé API Gemini (demande-la moi en privé) à la fin du fichier :
+   ```properties
+   GEMINI_API_KEY=VOTRE_CLE_ICI
    ```
+   *Puis fais un "Sync Project with Gradle Files".*
 
-2. **Configuration Firebase** :
-   - Créez un projet sur la [Console Firebase](https://console.firebase.google.com/).
-   - Ajoutez une application Android avec le nom de package `com.ensab.reservaapp`.
-   - Téléchargez le fichier `google-services.json` et placez-le dans le répertoire `app/`.
-   - Activez **Authentication** (Email/Password, Google), **Firestore Database**, et **Storage**.
+### 2. Accès au mode Admin
+Pour tester tes futures pages :
+1. Connecte-toi sur l'app avec ton compte.
+2. Dans la console Firebase (Collection `users`), change ton champ `role` de `"user"` à `"admin"`.
+3. La `LoginActivity` détectera automatiquement ce changement.
 
-3. **Compiler le projet** :
-   - Ouvrez le projet dans Android Studio.
-   - Synchronisez les fichiers Gradle.
-   - Lancez l'application sur un émulateur ou un appareil physique.
+### 3. Tes Prochaines Étapes 🚀
+L'infrastructure est prête, tu peux maintenant te concentrer sur :
+- **Dashboard Admin** : Créer une `AdminActivity` pour centraliser la gestion.
+- **Gestion des Hôtels** : Interface pour Ajouter / Modifier / Supprimer des hôtels dans la collection `hotels`.
+- **Suivi des Réservations** : Liste de toutes les réservations (Collection `bookings`). Utilise le champ `hotelId` pour filtrer ou afficher le nom de l'hôtel.
+- **Statistiques** : (Optionnel) Afficher le revenu total généré en DH.
 
-## 📁 Structure du Projet
+---
 
-- `app/src/main/java/com/ensab/reservaapp/` : Source Java.
-  - `LoginActivity.java` : Gestion de la connexion.
-  - `SignUpActivity.java` : Enregistrement des nouveaux utilisateurs.
-  - `ForgotPasswordActivity.java` : Récupération de compte.
-  - `ProfileActivity.java` : Gestion du profil utilisateur.
-  - `ChoiceActivity.java` : Tableau de bord principal (Exploration).
-- `app/src/main/res/layout/` : Définitions d'interface XML (Optimisées pour la cohérence visuelle).
-- `app/src/main/res/values/` : Thèmes et couleurs (Forçage du style White-Premium).
+## 📁 Structure du Projet (Refactorisée)
+
+- `data/` : `FirebaseHelper`, `GeminiService` (Logique de données).
+- `model/` : `Hotel`, `Booking`, `ChatMessage` (Modèles de données).
+- `repository/` : `HotelRepository` (Abstraction Firestore).
+- `view/activity/` : Activités classées par flux (Auth, Liste, Détails).
+- `view/adapter/` : Adaptateurs pour RecyclerView.
+- `viewmodel/` : Logique métier et gestion d'état (MVVM).
 
 ## 📄 Licence
 
-Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour plus de détails.
+Ce projet est sous licence MIT.
