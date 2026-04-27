@@ -1,5 +1,8 @@
 package com.ensab.reservaapp.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Hotel {
     private String id;
     private String name;
@@ -7,9 +10,12 @@ public class Hotel {
     private String description;
     private double price_per_night;
     private double rating;
-    private String imageUrl;
+    private String imageUrl; // Image principale
+    private List<String> images; // Liste des images additionnelles
 
-    public Hotel() {}
+    public Hotel() {
+        this.images = new ArrayList<>();
+    }
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
@@ -25,4 +31,6 @@ public class Hotel {
     public void setRating(double rating) { this.rating = rating; }
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public List<String> getImages() { return images; }
+    public void setImages(List<String> images) { this.images = images; }
 }

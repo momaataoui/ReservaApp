@@ -3,12 +3,14 @@ package com.ensab.reservaapp.view.activity;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -59,6 +61,19 @@ public class MyBookingsActivity extends AppCompatActivity {
 
         rvBookings.setLayoutManager(new LinearLayoutManager(this));
         adapter = new BookingAdapter(bookingList);
+        
+        adapter.setOnBookingActionListener(new BookingAdapter.OnBookingActionListener() {
+            @Override
+            public void onCancel(Booking booking) {
+                showCancelConfirmation(booking);
+            }
+
+            @Override
+            public void onDelete(Booking booking) {
+                showDeleteConfirmation(booking);
+            }
+        });
+        
         rvBookings.setAdapter(adapter);
 
         findViewById(R.id.btnExplore).setOnClickListener(v -> {
@@ -70,6 +85,58 @@ public class MyBookingsActivity extends AppCompatActivity {
         loadBookings();
     }
 
+    private void showCancelConfirmation(Booking booking) {
+        new AlertDialog.Builder(this)
+            .setTitle("Cancel Reservation")
+            .setMessage("Are you sure you want to cancel your reservation at " + booking.getHotelName() + "?")
+            .setPositiveButton("Yes, Cancel", (dialog, which) -> {
+                cancelBooking(booking);
+            })
+            .setNegativeButton("No", null)
+            .show();
+    }
+
+    private void showDeleteConfirmation(Booking booking) {
+        new AlertDialog.Builder(this)
+            .setTitle("Remove Trip")
+            .setMessage("Are you sure you want to remove this trip record from your history?")
+            .setPositiveButton("Remove", (dialog, which) -> {
+                deleteBooking(booking);
+            })
+            .setNegativeButton("Cancel", null)
+            .show();
+    }
+
+    private void cancelBooking(Booking booking) {
+        progressBar.setVisibility(View.VISIBLE);
+        db.collection("bookings").document(booking.getId())
+            .update("status", "Cancelled")
+            .addOnSuccessListener(aVoid -> {
+                progressBar.setVisibility(View.GONE);
+                Toast.makeText(this, "Reservation cancelled", Toast.LENGTH_SHORT).show();
+                loadBookings(); // Refresh list
+            })
+            .addOnFailureListener(e -> {
+                progressBar.setVisibility(View.GONE);
+                Toast.makeText(this, "Error cancelling reservation", Toast.LENGTH_SHORT).show();
+            });
+    }
+
+    private void deleteBooking(Booking booking) {
+        progressBar.setVisibility(View.VISIBLE);
+        db.collection("bookings").document(booking.getId())
+            .delete()
+            .addOnSuccessListener(aVoid -> {
+                progressBar.setVisibility(View.GONE);
+                Toast.makeText(this, "Trip removed", Toast.LENGTH_SHORT).show();
+                loadBookings(); // Refresh list
+            })
+            .addOnFailureListener(e -> {
+                progressBar.setVisibility(View.GONE);
+                Toast.makeText(this, "Error removing trip", Toast.LENGTH_SHORT).show();
+            });
+    }
+
     private void loadBookings() {
         if (mAuth.getCurrentUser() == null) return;
 
@@ -78,15 +145,48 @@ public class MyBookingsActivity extends AppCompatActivity {
 
         db.collection("bookings")
             .whereEqualTo("userId", userId)
-            .orderBy("checkIn", Query.Direction.DESCENDING)
             .get()
             .addOnSuccessListener(queryDocumentSnapshots -> {
                 progressBar.setVisibility(View.GONE);
                 bookingList.clear();
                 for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                    Booking booking = doc.toObject(Booking.class);
-                    booking.setId(doc.getId());
-                    bookingList.add(booking);
+                    try {
+                        Booking booking = new Booking();
+                        booking.setId(doc.getId());
+                        booking.setUserId(doc.getString("userId"));
+                        booking.setHotelId(doc.getString("hotelId"));
+                        booking.setHotelName(doc.getString("hotelName"));
+                        booking.setHotelLocation(doc.getString("hotelLocation"));
+                        booking.setHotelImageUrl(doc.getString("hotelImageUrl"));
+                        booking.setStatus(doc.getString("status"));
+                        
+                        Long totalPrice = doc.getLong("totalPrice");
+                        if (totalPrice != null) booking.setTotalPrice(totalPrice.intValue());
+
+                        Long adults = doc.getLong("adults");
+                        if (adults != null) booking.setAdults(adults.intValue());
+
+                        Long children = doc.getLong("children");
+                        if (children != null) booking.setChildren(children.intValue());
+
+                        Object ci = doc.get("checkIn");
+                        if (ci instanceof Long) {
+                            booking.setCheckIn((Long) ci);
+                        } else if (ci instanceof com.google.firebase.Timestamp) {
+                            booking.setCheckIn(((com.google.firebase.Timestamp) ci).toDate().getTime());
+                        }
+
+                        Object co = doc.get("checkOut");
+                        if (co instanceof Long) {
+                            booking.setCheckOut((Long) co);
+                        } else if (co instanceof com.google.firebase.Timestamp) {
+                            booking.setCheckOut(((com.google.firebase.Timestamp) co).toDate().getTime());
+                        }
+
+                        bookingList.add(booking);
+                    } catch (Exception e) {
+                        Log.e("MyBookings", "Error parsing booking document: " + doc.getId(), e);
+                    }
                 }
 
                 if (bookingList.isEmpty()) {
@@ -100,7 +200,7 @@ public class MyBookingsActivity extends AppCompatActivity {
             })
             .addOnFailureListener(e -> {
                 progressBar.setVisibility(View.GONE);
-                Toast.makeText(this, "Erreur lors du chargement des voyages", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Error loading trips", Toast.LENGTH_SHORT).show();
             });
     }
 

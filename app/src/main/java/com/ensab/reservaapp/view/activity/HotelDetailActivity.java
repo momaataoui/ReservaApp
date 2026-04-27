@@ -2,39 +2,43 @@ package com.ensab.reservaapp.view.activity;
 
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
-import android.widget.ImageView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
+import androidx.viewpager2.widget.ViewPager2;
 
-import com.bumptech.glide.Glide;
 import com.ensab.reservaapp.R;
 import com.ensab.reservaapp.data.NavigationHelper;
-import com.ensab.reservaapp.model.Booking;
+import com.ensab.reservaapp.view.adapter.HotelImageAdapter;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.datepicker.CalendarConstraints;
 import com.google.android.material.datepicker.DateValidatorPointForward;
 import com.google.android.material.datepicker.MaterialDatePicker;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.TimeZone;
 
 public class HotelDetailActivity extends AppCompatActivity {
 
@@ -46,391 +50,358 @@ public class HotelDetailActivity extends AppCompatActivity {
     public static final String EXTRA_HOTEL_REVIEWS  = "hotel_reviews";
     public static final String EXTRA_HOTEL_DESC     = "hotel_description";
     public static final String EXTRA_HOTEL_IMAGE_URL = "hotel_image_url";
+    public static final String EXTRA_HOTEL_IMAGES   = "hotel_images";
 
-    private TextView         tvHotelName, tvLocation, tvPriceSummaryTotal, tvLocationHeader;
-    private TextView         tvRating, tvReviewCount, tvDescription;
-    private TextView         tvCheckInDate, tvCheckOutDate, tvGuests;
-    private TextView         tvTotalPrice;
-    private TextView         tvPriceSummaryAmount, tvPriceSummaryTaxes, tvPriceSummaryLabel;
-    private TextView         tvBedsCount, tvDoubleBedsCount;
-    private ImageView        ivHeroImage, btnFavorite;
-    private MaterialButton   btnBack, btnCheckAvailability;
-    private MaterialButton   btnBedsMinus, btnBedsPlus;
-    private MaterialButton   btnDoubleBedsMinus, btnDoubleBedsPlus;
-    private MaterialCardView cvCheckIn, cvCheckOut, cvGuests;
-    private View             llReadMore;
+    private TextView tvHotelName, tvRating, tvReviewCount, tvDescription, tvHotelLocationDetail;
+    private TextView tvCheckInDate, tvCheckOutDate, tvNightsCount, tvImageCounter;
+    private TextView tvPricePerNightValue, tvNightsSubtotalLabel, tvNightsSubtotalValue;
+    private TextView tvServiceFee, tvTaxFee, tvPriceDetailTotal, tvTotalPriceBottom;
+    private Spinner  spinnerRooms, spinnerAdults, spinnerKids;
+    private MaterialButton btnBack, btnBookNow, btnFavorite;
+    private View cardCheckIn, cardCheckOut, cardMapPlaceholder;
+    private ViewPager2 viewPagerImages;
+    private TabLayout tabLayoutIndicators;
 
-    private boolean isFavorite     = false;
-    private boolean isExpanded     = false;
-    private long    checkInMillis;
-    private long    checkOutMillis;
-    private int     adults         = 2;
-    private int     children       = 1;
-    private int     pricePerNight;
-    private int     simpleBeds     = 1;
-    private int     doubleBeds     = 0;
-    
-    private String  hotelId;
-    private String  hotelName;
-    private String  hotelLocation;
-    private String  hotelImageUrl;
+    private String hotelId;
+    private String hotelImageUrl;
+    private int pricePerNight = 1200;
+    private int currentTotalPrice = 0;
 
-    private static final SimpleDateFormat DATE_FMT =
-            new SimpleDateFormat("dd MMM yyyy", Locale.FRENCH);
+    private long checkInTimestamp = MaterialDatePicker.todayInUtcMilliseconds();
+    private long checkOutTimestamp = checkInTimestamp + (24 * 60 * 60 * 1000);
 
-    private FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private FirebaseAuth mAuth = FirebaseAuth.getInstance();
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy", Locale.ENGLISH);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         Window window = getWindow();
-        window.setStatusBarColor(Color.WHITE);
-        WindowInsetsControllerCompat ctrl =
-                ViewCompat.getWindowInsetsController(window.getDecorView());
-        if (ctrl != null) ctrl.setAppearanceLightStatusBars(true);
+        window.setStatusBarColor(Color.TRANSPARENT);
+        WindowInsetsControllerCompat ctrl = ViewCompat.getWindowInsetsController(window.getDecorView());
+        if (ctrl != null) ctrl.setAppearanceLightStatusBars(false);
 
         setContentView(R.layout.activity_hotel_detail);
 
-        View root = findViewById(R.id.main);
-        if (root != null) {
-            ViewCompat.setOnApplyWindowInsetsListener(
-                    root, (v, insets) -> {
-                        Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                        v.setPadding(bars.left, bars.top, bars.right, 0);
-                        return insets;
-                    });
-        }
+        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         initViews();
         loadData();
+        setupSpinners();
         setupListeners();
-        checkIfFavorite();
+        updateDisplay();
     }
 
     private void initViews() {
-        tvHotelName          = findViewById(R.id.tvHotelName);
-        tvLocationHeader     = findViewById(R.id.tvLocationHeader);
-        tvRating             = findViewById(R.id.tvRating);
-        tvReviewCount        = findViewById(R.id.tvReviewCount);
-        tvDescription        = findViewById(R.id.tvDescription);
-        tvCheckInDate        = findViewById(R.id.tvCheckInDate);
-        tvCheckOutDate       = findViewById(R.id.tvCheckOutDate);
-        tvGuests             = findViewById(R.id.tvGuests);
-        tvTotalPrice         = findViewById(R.id.tvTotalPrice);
-        tvPriceSummaryTotal  = findViewById(R.id.tvPriceSummaryTotal);
-        tvPriceSummaryAmount = findViewById(R.id.tvPriceSummaryAmount);
-        tvPriceSummaryTaxes  = findViewById(R.id.tvPriceSummaryTaxes);
-        tvPriceSummaryLabel  = findViewById(R.id.tvPriceSummaryLabel);
+        tvHotelName = findViewById(R.id.tvHotelName);
+        tvRating = findViewById(R.id.tvRating);
+        tvReviewCount = findViewById(R.id.tvReviewCount);
+        tvDescription = findViewById(R.id.tvDescription);
+        tvHotelLocationDetail = findViewById(R.id.tvHotelLocationDetail);
+        tvCheckInDate = findViewById(R.id.tvCheckInDate);
+        tvCheckOutDate = findViewById(R.id.tvCheckOutDate);
+        tvNightsCount = findViewById(R.id.tvNightsCount);
+        tvImageCounter = findViewById(R.id.tvImageCounter);
         
-        tvBedsCount          = findViewById(R.id.tvBedsCount);
-        tvDoubleBedsCount    = findViewById(R.id.tvDoubleBedsCount);
+        tvPricePerNightValue = findViewById(R.id.tvPricePerNightValue);
+        tvNightsSubtotalLabel = findViewById(R.id.tvNightsSubtotalLabel);
+        tvNightsSubtotalValue = findViewById(R.id.tvNightsSubtotalValue);
+        tvServiceFee = findViewById(R.id.tvServiceFee);
+        tvTaxFee = findViewById(R.id.tvTaxFee);
+        tvPriceDetailTotal = findViewById(R.id.tvPriceDetailTotal);
+        tvTotalPriceBottom = findViewById(R.id.tvTotalPriceBottom);
+
+        spinnerRooms = findViewById(R.id.spinnerRooms);
+        spinnerAdults = findViewById(R.id.spinnerAdults);
+        spinnerKids = findViewById(R.id.spinnerKids);
+
+        cardCheckIn = findViewById(R.id.cardCheckIn);
+        cardCheckOut = findViewById(R.id.cardCheckOut);
+        cardMapPlaceholder = findViewById(R.id.cardMapPlaceholder);
         
-        ivHeroImage          = findViewById(R.id.ivHeroImage);
-        llReadMore           = findViewById(R.id.llReadMore);
-        btnBack              = findViewById(R.id.btnBack);
-        btnFavorite          = findViewById(R.id.btnFavorite);
-        btnCheckAvailability = findViewById(R.id.btnCheckAvailability);
+        viewPagerImages = findViewById(R.id.viewPagerImages);
+        tabLayoutIndicators = findViewById(R.id.tabLayoutIndicators);
         
-        btnBedsMinus         = findViewById(R.id.btnBedsMinus);
-        btnBedsPlus          = findViewById(R.id.btnBedsPlus);
-        btnDoubleBedsMinus   = findViewById(R.id.btnDoubleBedsMinus);
-        btnDoubleBedsPlus    = findViewById(R.id.btnDoubleBedsPlus);
-        
-        cvCheckIn            = findViewById(R.id.cvCheckIn);
-        cvCheckOut           = findViewById(R.id.cvCheckOut);
-        cvGuests             = findViewById(R.id.cvGuests);
+        btnBack = findViewById(R.id.btnBack);
+        btnBookNow = findViewById(R.id.btnBookNow);
+        btnFavorite = findViewById(R.id.btnFavorite);
+    }
+
+    private void setupSpinners() {
+        String[] rooms = {"1 room", "2 rooms", "3 rooms"};
+        String[] adults = {"1 adult", "2 adults", "3 adults", "4 adults"};
+        String[] kids = {"0 kids", "1 kid", "2 kids"};
+
+        spinnerRooms.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, rooms));
+        spinnerAdults.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, adults));
+        spinnerKids.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, kids));
     }
 
     private void loadData() {
         Intent i = getIntent();
-        hotelId       = i.getStringExtra(EXTRA_HOTEL_ID);
-        hotelName     = getExtra(i, EXTRA_HOTEL_NAME,     "Hôtel des Lumières");
-        hotelLocation = getExtra(i, EXTRA_HOTEL_LOCATION, "Le Marais, Paris");
-        pricePerNight = i.getIntExtra(EXTRA_HOTEL_PRICE, 189);
-        float  rating = i.getFloatExtra(EXTRA_HOTEL_RATING, 4.7f);
-        int    reviews= i.getIntExtra(EXTRA_HOTEL_REVIEWS, 1289);
-        String desc   = getExtra(i, EXTRA_HOTEL_DESC,
-                "Charmant hôtel 4 étoiles au cœur du Marais. Chambres élégantes, service attentionné et emplacement idéal pour découvrir Paris.");
+        hotelId = i.getStringExtra(EXTRA_HOTEL_ID);
+        String name = i.getStringExtra(EXTRA_HOTEL_NAME);
+        if (name != null) tvHotelName.setText(name);
         
+        String location = i.getStringExtra(EXTRA_HOTEL_LOCATION);
+        if (location != null) tvHotelLocationDetail.setText(location);
+        
+        pricePerNight = i.getIntExtra(EXTRA_HOTEL_PRICE, 1200);
+        float rating = i.getFloatExtra(EXTRA_HOTEL_RATING, 4.92f);
+        int reviews = i.getIntExtra(EXTRA_HOTEL_REVIEWS, 116);
+        String description = i.getStringExtra(EXTRA_HOTEL_DESC);
+        
+        tvRating.setText(String.valueOf(rating));
+        tvReviewCount.setText("(" + reviews + " reviews)");
+        if (description != null) tvDescription.setText(description);
+        
+        List<String> hotelImages = new ArrayList<>();
         hotelImageUrl = i.getStringExtra(EXTRA_HOTEL_IMAGE_URL);
-
-        checkInMillis  = System.currentTimeMillis();
-        checkOutMillis = checkInMillis + 1L * 86_400_000; // 1 night default as per UI
-
-        if (tvHotelName != null) tvHotelName.setText(hotelName);
-        if (tvLocationHeader != null) tvLocationHeader.setText(hotelLocation + " • 1,2 km du centre");
-        if (tvRating != null) tvRating.setText(String.format(Locale.getDefault(), "%.1f", rating).replace(".", ","));
-        if (tvReviewCount != null) tvReviewCount.setText(String.format(Locale.getDefault(), "(%d avis)", reviews));
-        if (tvDescription != null) tvDescription.setText(desc);
+        if (hotelImageUrl != null) hotelImages.add(hotelImageUrl);
+        String[] others = i.getStringArrayExtra(EXTRA_HOTEL_IMAGES);
+        if (others != null) hotelImages.addAll(Arrays.asList(others));
         
-        if (ivHeroImage != null) {
-            if (hotelImageUrl != null && !hotelImageUrl.isEmpty()) {
-                Glide.with(this).load(hotelImageUrl).centerCrop().into(ivHeroImage);
-            } else {
-                ivHeroImage.setImageResource(R.drawable.mamounia);
-            }
+        if (hotelImages.isEmpty()) {
+            hotelImageUrl = "https://images.unsplash.com/photo-1587061949733-5d6932e1574e";
+            hotelImages.add(hotelImageUrl);
+        } else if (hotelImageUrl == null) {
+            hotelImageUrl = hotelImages.get(0);
         }
+
+        HotelImageAdapter adapter = new HotelImageAdapter(hotelImages, this);
+        viewPagerImages.setAdapter(adapter);
+        new TabLayoutMediator(tabLayoutIndicators, viewPagerImages, (tab, pos) -> {}).attach();
+
+        viewPagerImages.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                if (tvImageCounter != null) {
+                    tvImageCounter.setText((position + 1) + " / " + hotelImages.size());
+                }
+            }
+        });
+
+        checkIfFavorite();
+    }
+
+    private void setupListeners() {
+        btnBack.setOnClickListener(v -> finish());
+        btnFavorite.setOnClickListener(v -> toggleFavorite());
+        cardCheckIn.setOnClickListener(v -> showDatePicker(true));
+        cardCheckOut.setOnClickListener(v -> showDatePicker(false));
+
+        cardMapPlaceholder.setOnClickListener(v -> {
+            Uri mapUri = Uri.parse("geo:0,0?q=" + Uri.encode(tvHotelName.getText() + " " + tvHotelLocationDetail.getText()));
+            Intent mapIntent = new Intent(Intent.ACTION_VIEW, mapUri);
+            mapIntent.setPackage("com.google.android.apps.maps");
+            if (mapIntent.resolveActivity(getPackageManager()) != null) {
+                startActivity(mapIntent);
+            } else {
+                startActivity(new Intent(Intent.ACTION_VIEW, mapUri));
+            }
+        });
+
+        btnBookNow.setOnClickListener(v -> showBookingSummary());
+    }
+
+    private void showBookingSummary() {
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            Toast.makeText(this, "Please log in to book", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        View view = LayoutInflater.from(this).inflate(R.layout.bottomsheet_booking_confirm, null);
+        dialog.setContentView(view);
+
+        TextView bsHotelName = view.findViewById(R.id.bsHotelName);
+        TextView bsCheckIn = view.findViewById(R.id.bsCheckIn);
+        TextView bsCheckOut = view.findViewById(R.id.bsCheckOut);
+        TextView bsNights = view.findViewById(R.id.bsNights);
+        TextView bsGuests = view.findViewById(R.id.bsGuests);
+        TextView bsTotalPrice = view.findViewById(R.id.bsTotalPrice);
+        MaterialButton btnConfirm = view.findViewById(R.id.btnConfirmBooking);
+        MaterialButton btnCancel = view.findViewById(R.id.btnCancelBooking);
+
+        bsHotelName.setText(tvHotelName.getText());
+        bsCheckIn.setText(tvCheckInDate.getText());
+        bsCheckOut.setText(tvCheckOutDate.getText());
         
-        updateBedsUI();
-        refreshDatesAndTotal();
+        long diff = checkOutTimestamp - checkInTimestamp;
+        int nights = (int) (diff / (24 * 60 * 60 * 1000));
+        if (nights <= 0) nights = 1;
+        bsNights.setText(nights + (nights > 1 ? " nights" : " night"));
+
+        String guestsText = spinnerAdults.getSelectedItem() + ", " + spinnerKids.getSelectedItem();
+        bsGuests.setText(guestsText);
+        bsTotalPrice.setText(tvTotalPriceBottom.getText());
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        btnConfirm.setOnClickListener(v -> {
+            dialog.dismiss();
+            performBooking();
+        });
+
+        dialog.show();
     }
 
     private void checkIfFavorite() {
-        if (mAuth.getCurrentUser() == null || hotelId == null) return;
+        String userId = FirebaseAuth.getInstance().getUid();
+        if (userId == null || hotelId == null) return;
 
-        db.collection("users").document(mAuth.getCurrentUser().getUid())
+        FirebaseFirestore.getInstance().collection("wishlists")
+                .whereEqualTo("userId", userId)
+                .whereEqualTo("hotelId", hotelId)
                 .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        List<String> favorites = (List<String>) documentSnapshot.get("favorites");
-                        if (favorites != null && favorites.contains(hotelId)) {
-                            isFavorite = true;
-                            btnFavorite.setImageResource(R.drawable.ic_saved_filled);
-                        }
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        btnFavorite.setIconResource(R.drawable.ic_favorite_filled);
+                        btnFavorite.setIconTintResource(R.color.black);
                     }
                 });
     }
 
-    private void setupListeners() {
-        if (btnBack != null) btnBack.setOnClickListener(v -> finish());
-
-        if (btnFavorite != null) {
-            btnFavorite.setOnClickListener(v -> toggleFavorite());
-        }
-
-        if (llReadMore != null) {
-            llReadMore.setOnClickListener(v -> {
-                isExpanded = !isExpanded;
-                TextView label = llReadMore.findViewById(android.R.id.text1);
-                if (label == null && llReadMore instanceof android.view.ViewGroup) {
-                    label = (TextView) ((android.view.ViewGroup) llReadMore).getChildAt(0);
-                }
-                if (isExpanded) {
-                    tvDescription.setMaxLines(Integer.MAX_VALUE);
-                    if (label != null) label.setText("Voir moins");
-                } else {
-                    tvDescription.setMaxLines(3);
-                    if (label != null) label.setText("Voir plus");
-                }
-            });
-        }
-
-        if (cvCheckIn != null) cvCheckIn.setOnClickListener(v  -> openDatePicker(true));
-        if (cvCheckOut != null) cvCheckOut.setOnClickListener(v -> openDatePicker(false));
-        if (cvGuests != null) cvGuests.setOnClickListener(v -> showGuestDialog());
-        
-        // Simple Beds
-        if (btnBedsMinus != null) {
-            btnBedsMinus.setOnClickListener(v -> {
-                if (simpleBeds > 0 && (simpleBeds + doubleBeds) > 1) {
-                    simpleBeds--;
-                    updateBedsUI();
-                    refreshDatesAndTotal();
-                }
-            });
-        }
-        if (btnBedsPlus != null) {
-            btnBedsPlus.setOnClickListener(v -> {
-                if (simpleBeds + doubleBeds < 5) {
-                    simpleBeds++;
-                    updateBedsUI();
-                    refreshDatesAndTotal();
-                } else {
-                    Toast.makeText(this, "Maximum 5 lits au total", Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
-
-        // Double Beds
-        if (btnDoubleBedsMinus != null) {
-            btnDoubleBedsMinus.setOnClickListener(v -> {
-                if (doubleBeds > 0 && (simpleBeds + doubleBeds) > 1) {
-                    doubleBeds--;
-                    updateBedsUI();
-                    refreshDatesAndTotal();
-                }
-            });
-        }
-        if (btnDoubleBedsPlus != null) {
-            btnDoubleBedsPlus.setOnClickListener(v -> {
-                if (simpleBeds + doubleBeds < 5) {
-                    doubleBeds++;
-                    updateBedsUI();
-                    refreshDatesAndTotal();
-                } else {
-                    Toast.makeText(this, "Maximum 5 lits au total", Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
-
-        if (btnCheckAvailability != null) {
-            btnCheckAvailability.setOnClickListener(v -> {
-                long nights = Math.max(1, (checkOutMillis - checkInMillis) / 86_400_000L);
-                int roomTotal = (pricePerNight + (doubleBeds * 200)) * (int) nights;
-                int taxes = (int) (roomTotal * 0.1);
-                saveBookingToFirestore(roomTotal + taxes);
-            });
-        }
-    }
-
     private void toggleFavorite() {
-        if (mAuth.getCurrentUser() == null || hotelId == null) {
-            Toast.makeText(this, "Connectez-vous pour ajouter aux favoris", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        String userId = mAuth.getCurrentUser().getUid();
-        if (isFavorite) {
-            db.collection("users").document(userId)
-                    .update("favorites", FieldValue.arrayRemove(hotelId))
-                    .addOnSuccessListener(aVoid -> {
-                        isFavorite = false;
-                        btnFavorite.setImageResource(R.drawable.ic_saved);
-                        Toast.makeText(this, "Retiré des favoris", Toast.LENGTH_SHORT).show();
-                    });
-        } else {
-            db.collection("users").document(userId)
-                    .update("favorites", FieldValue.arrayUnion(hotelId))
-                    .addOnSuccessListener(aVoid -> {
-                        isFavorite = true;
-                        btnFavorite.setImageResource(R.drawable.ic_saved_filled);
-                        Toast.makeText(this, "Ajouté aux favoris ❤️", Toast.LENGTH_SHORT).show();
-                    })
-                    .addOnFailureListener(e -> {
-                        db.collection("users").document(userId)
-                                .set(new java.util.HashMap<String, Object>() {{
-                                    put("favorites", java.util.Arrays.asList(hotelId));
-                                }}, com.google.firebase.firestore.SetOptions.merge());
-                        isFavorite = true;
-                        btnFavorite.setImageResource(R.drawable.ic_saved_filled);
-                    });
-        }
-    }
-
-    private void updateBedsUI() {
-        if (tvBedsCount != null) tvBedsCount.setText(String.valueOf(simpleBeds));
-        if (tvDoubleBedsCount != null) tvDoubleBedsCount.setText(String.valueOf(doubleBeds));
-    }
-
-    private void openDatePicker(boolean isCheckIn) {
-        CalendarConstraints constraints = new CalendarConstraints.Builder()
-                .setValidator(DateValidatorPointForward.now())
-                .build();
-
-        MaterialDatePicker<Long> picker = MaterialDatePicker.Builder.datePicker()
-                .setTitleText(isCheckIn ? "Date d'arrivée" : "Date de départ")
-                .setSelection(isCheckIn ? checkInMillis : checkOutMillis)
-                .setCalendarConstraints(constraints)
-                .build();
-
-        picker.addOnPositiveButtonClickListener(ms -> {
-            if (isCheckIn) {
-                checkInMillis = ms;
-                if (checkOutMillis <= checkInMillis)
-                    checkOutMillis = checkInMillis + 86_400_000L;
-            } else {
-                if (ms > checkInMillis) {
-                    checkOutMillis = ms;
-                } else {
-                    Toast.makeText(this, "La date de départ doit être après l'arrivée", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-            }
-            refreshDatesAndTotal();
-        });
-
-        picker.show(getSupportFragmentManager(), "dp_" + isCheckIn);
-    }
-
-    private void showGuestDialog() {
-        final int[] tmpAdults   = {adults};
-        final int[] tmpChildren = {children};
-        View dv = LayoutInflater.from(this).inflate(R.layout.dialog_guest_picker, null);
-        TextView tvA = dv.findViewById(R.id.tvAdultsCount);
-        TextView tvC = dv.findViewById(R.id.tvChildrenCount);
-        MaterialButton bAm = dv.findViewById(R.id.btnAdultMinus);
-        MaterialButton bAp = dv.findViewById(R.id.btnAdultPlus);
-        MaterialButton bCm = dv.findViewById(R.id.btnChildMinus);
-        MaterialButton bCp = dv.findViewById(R.id.btnChildPlus);
-
-        if (tvA != null) tvA.setText(String.valueOf(tmpAdults[0]));
-        if (tvC != null) tvC.setText(String.valueOf(tmpChildren[0]));
-
-        if (bAm != null) bAm.setOnClickListener(v -> { if (tmpAdults[0] > 1) { tmpAdults[0]--; tvA.setText(String.valueOf(tmpAdults[0])); } });
-        if (bAp != null) bAp.setOnClickListener(v -> { if (tmpAdults[0] < 10) { tmpAdults[0]++; tvA.setText(String.valueOf(tmpAdults[0])); } });
-        if (bCm != null) bCm.setOnClickListener(v -> { if (tmpChildren[0] > 0) { tmpChildren[0]--; tvC.setText(String.valueOf(tmpChildren[0])); } });
-        if (bCp != null) bCp.setOnClickListener(v -> { if (tmpChildren[0] < 6) { tmpChildren[0]++; tvC.setText(String.valueOf(tmpChildren[0])); } });
-
-        new AlertDialog.Builder(this)
-                .setTitle("Voyageurs")
-                .setView(dv)
-                .setPositiveButton("Confirmer", (d, w) -> {
-                    adults   = tmpAdults[0];
-                    children = tmpChildren[0];
-                    if (tvGuests != null) tvGuests.setText(guestLabel());
-                })
-                .setNegativeButton("Annuler", null)
-                .show();
-    }
-
-    private void saveBookingToFirestore(int total) {
         String userId = FirebaseAuth.getInstance().getUid();
         if (userId == null) {
-            Toast.makeText(this, "Veuillez vous connecter pour réserver", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please log in to add to favorites", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        Booking booking = new Booking();
-        booking.setUserId(userId);
-        booking.setHotelId(hotelId);
-        booking.setHotelName(hotelName);
-        booking.setHotelLocation(hotelLocation);
-        booking.setHotelImageUrl(hotelImageUrl);
-        booking.setCheckIn(checkInMillis);
-        booking.setCheckOut(checkOutMillis);
-        booking.setAdults(adults);
-        booking.setChildren(children);
-        booking.setTotalPrice(total);
-        booking.setStatus("pending");
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("wishlists")
+                .whereEqualTo("userId", userId)
+                .whereEqualTo("hotelId", hotelId)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (queryDocumentSnapshots.isEmpty()) {
+                        Map<String, Object> fav = new HashMap<>();
+                        fav.put("userId", userId);
+                        fav.put("hotelId", hotelId);
+                        fav.put("hotelName", tvHotelName.getText().toString());
+                        fav.put("hotelLocation", tvHotelLocationDetail.getText().toString());
+                        fav.put("hotelPrice", pricePerNight);
+
+                        db.collection("wishlists").add(fav).addOnSuccessListener(doc -> {
+                            btnFavorite.setIconResource(R.drawable.ic_favorite_filled);
+                            btnFavorite.setIconTintResource(R.color.black);
+                            Toast.makeText(this, "Added to favorites", Toast.LENGTH_SHORT).show();
+                        });
+                    } else {
+                        String docId = queryDocumentSnapshots.getDocuments().get(0).getId();
+                        db.collection("wishlists").document(docId).delete().addOnSuccessListener(aVoid -> {
+                            btnFavorite.setIconResource(R.drawable.ic_favorite_border);
+                            btnFavorite.setIconTintResource(R.color.black);
+                            Toast.makeText(this, "Removed from favorites", Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                });
+    }
+
+    private void performBooking() {
+        Map<String, Object> booking = new HashMap<>();
+        booking.put("userId", FirebaseAuth.getInstance().getUid());
+        booking.put("hotelId", hotelId);
+        booking.put("hotelName", tvHotelName.getText().toString());
+        booking.put("hotelLocation", tvHotelLocationDetail.getText().toString());
+        booking.put("hotelImageUrl", hotelImageUrl);
+        booking.put("checkIn", checkInTimestamp); // Save as long (milliseconds)
+        booking.put("checkOut", checkOutTimestamp); // Save as long (milliseconds)
+        booking.put("totalPrice", currentTotalPrice); // Save as int
+        booking.put("status", "Confirmed");
+        
+        // Extract count from spinner selection (e.g., "2 adults" -> 2)
+        int adults = 1;
+        try { adults = Integer.parseInt(spinnerAdults.getSelectedItem().toString().split(" ")[0]); } catch (Exception e) {}
+        int kids = 0;
+        try { kids = Integer.parseInt(spinnerKids.getSelectedItem().toString().split(" ")[0]); } catch (Exception e) {}
+        
+        booking.put("adults", adults);
+        booking.put("children", kids);
 
         FirebaseFirestore.getInstance().collection("bookings")
-            .add(booking)
-            .addOnSuccessListener(documentReference -> {
-                Toast.makeText(this, "✅ Réservation confirmée !", Toast.LENGTH_LONG).show();
-                NavigationHelper.fastNavigate(this, MyBookingsActivity.class);
-                finish();
-            })
-            .addOnFailureListener(e -> {
-                Toast.makeText(this, "Erreur : " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            });
+                .add(booking)
+                .addOnSuccessListener(documentReference -> {
+                    showSuccessDialog();
+                })
+                .addOnFailureListener(e -> Toast.makeText(this, "Error during booking", Toast.LENGTH_SHORT).show());
     }
 
-    private void refreshDatesAndTotal() {
-        if (tvCheckInDate != null) tvCheckInDate.setText(DATE_FMT.format(new Date(checkInMillis)));
-        if (tvCheckOutDate != null) tvCheckOutDate.setText(DATE_FMT.format(new Date(checkOutMillis)));
+    private void showSuccessDialog() {
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog_booking_success, null);
+        dialog.setContentView(view);
+        dialog.setCancelable(false);
 
-        long nights = Math.max(1, (checkOutMillis - checkInMillis) / 86_400_000L);
-        // Base calculation: use pricePerNight from Intent, double beds cost +200 DH per bed
-        int roomTotal = (pricePerNight + (doubleBeds * 200)) * (int) nights;
-        int taxes = (int) (roomTotal * 0.1);
-        int total = roomTotal + taxes;
+        MaterialButton btnViewBookings = view.findViewById(R.id.btnViewBookings);
+        MaterialButton btnHome = view.findViewById(R.id.btnBackToHome);
 
-        if (tvPriceSummaryLabel != null) tvPriceSummaryLabel.setText("Séjour (" + nights + " nuit" + (nights > 1 ? "s" : "") + ")");
-        if (tvPriceSummaryAmount != null) tvPriceSummaryAmount.setText(roomTotal + " DH");
-        if (tvPriceSummaryTaxes != null) tvPriceSummaryTaxes.setText(taxes + " DH");
-        if (tvPriceSummaryTotal != null) tvPriceSummaryTotal.setText(total + " DH");
-        if (tvTotalPrice != null) tvTotalPrice.setText(total + " DH");
+        btnViewBookings.setOnClickListener(v -> {
+            dialog.dismiss();
+            NavigationHelper.fastNavigate(this, MyBookingsActivity.class);
+            finish();
+        });
+
+        btnHome.setOnClickListener(v -> {
+            dialog.dismiss();
+            finish();
+        });
+
+        dialog.show();
+    }
+
+    private void showDatePicker(boolean isCheckIn) {
+        CalendarConstraints.Builder constraintsBuilder = new CalendarConstraints.Builder();
+        constraintsBuilder.setValidator(DateValidatorPointForward.now());
+
+        MaterialDatePicker<Long> picker = MaterialDatePicker.Builder.datePicker()
+                .setTitleText(isCheckIn ? "Select Check-in Date" : "Select Check-out Date")
+                .setSelection(isCheckIn ? checkInTimestamp : checkOutTimestamp)
+                .setCalendarConstraints(constraintsBuilder.build())
+                .build();
+
+        picker.addOnPositiveButtonClickListener(selection -> {
+            if (isCheckIn) {
+                checkInTimestamp = selection;
+                if (checkOutTimestamp <= checkInTimestamp) {
+                    checkOutTimestamp = checkInTimestamp + (24 * 60 * 60 * 1000);
+                }
+            } else {
+                if (selection <= checkInTimestamp) {
+                    Toast.makeText(this, "Check-out must be after check-in", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                checkOutTimestamp = selection;
+            }
+            updateDisplay();
+        });
+
+        picker.show(getSupportFragmentManager(), "DATE_PICKER");
+    }
+
+    private void updateDisplay() {
+        tvCheckInDate.setText(dateFormat.format(new Date(checkInTimestamp)));
+        tvCheckOutDate.setText(dateFormat.format(new Date(checkOutTimestamp)));
+
+        long diff = checkOutTimestamp - checkInTimestamp;
+        int nights = (int) (diff / (24 * 60 * 60 * 1000));
+        if (nights <= 0) nights = 1;
+
+        tvNightsCount.setText(nights + (nights > 1 ? " nights" : " night"));
+        tvPricePerNightValue.setText(pricePerNight + " DH");
+        tvNightsSubtotalLabel.setText(nights + (nights > 1 ? " nights" : " night"));
         
-        if (tvGuests != null) tvGuests.setText(guestLabel());
-    }
-
-    private String guestLabel() {
-        return adults + " adlt, " + children + " enf";
-    }
-
-    private static String getExtra(Intent i, String key, String def) {
-        String v = i.getStringExtra(key); return v != null ? v : def;
+        int subtotal = pricePerNight * nights;
+        tvNightsSubtotalValue.setText(subtotal + " DH");
+        
+        int serviceFee = 150;
+        int taxFee = 50;
+        tvServiceFee.setText(serviceFee + " DH");
+        tvTaxFee.setText(taxFee + " DH");
+        
+        currentTotalPrice = subtotal + serviceFee + taxFee;
+        tvPriceDetailTotal.setText(currentTotalPrice + " DH");
+        tvTotalPriceBottom.setText(currentTotalPrice + " DH");
     }
 }

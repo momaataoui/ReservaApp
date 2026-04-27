@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class HotelAdapter extends RecyclerView.Adapter<HotelAdapter.HotelViewHolder> {
+public class HotelHorizontalAdapter extends RecyclerView.Adapter<HotelHorizontalAdapter.ViewHolder> {
 
     private List<Hotel> hotels;
     private Context context;
@@ -34,7 +34,7 @@ public class HotelAdapter extends RecyclerView.Adapter<HotelAdapter.HotelViewHol
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private FirebaseAuth mAuth = FirebaseAuth.getInstance();
 
-    public HotelAdapter(List<Hotel> hotels, Context context) {
+    public HotelHorizontalAdapter(List<Hotel> hotels, Context context) {
         this.hotels = hotels;
         this.context = context;
         loadFavorites();
@@ -42,7 +42,6 @@ public class HotelAdapter extends RecyclerView.Adapter<HotelAdapter.HotelViewHol
 
     private void loadFavorites() {
         if (mAuth.getCurrentUser() == null) return;
-        
         db.collection("users").document(mAuth.getCurrentUser().getUid())
             .get()
             .addOnSuccessListener(documentSnapshot -> {
@@ -63,17 +62,17 @@ public class HotelAdapter extends RecyclerView.Adapter<HotelAdapter.HotelViewHol
 
     @NonNull
     @Override
-    public HotelViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_hotel, parent, false);
-        return new HotelViewHolder(view);
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(context).inflate(R.layout.item_hotel_horizontal, parent, false);
+        return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull HotelViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Hotel hotel = hotels.get(position);
         holder.tvName.setText(hotel.getName());
         holder.tvCity.setText(hotel.getCity());
-        holder.tvPrice.setText(String.format(Locale.FRANCE, "%,d", (int)hotel.getPrice_per_night()));
+        holder.tvPrice.setText(String.format(Locale.FRANCE, "%,d MAD", (int)hotel.getPrice_per_night()));
         holder.tvRating.setText(String.valueOf(hotel.getRating()));
 
         if (hotel.getImageUrl() != null && !hotel.getImageUrl().isEmpty()) {
@@ -86,13 +85,12 @@ public class HotelAdapter extends RecyclerView.Adapter<HotelAdapter.HotelViewHol
                 .into(holder.ivPhoto);
         }
 
-        // Update heart icon based on favorite status
         boolean isFavorite = favoriteHotelIds.contains(hotel.getId());
         holder.btnFavorite.setImageResource(isFavorite ? R.drawable.ic_favorite_filled : R.drawable.ic_favorite_border);
-
-        // All icons (filled and border) should be white as requested
+        
+        // Ensure white tint for icons
         holder.btnFavorite.setColorFilter(context.getResources().getColor(R.color.white));
-
+        
         holder.btnFavorite.setOnClickListener(v -> toggleFavorite(hotel, position));
 
         holder.itemView.setOnClickListener(v -> {
@@ -123,7 +121,6 @@ public class HotelAdapter extends RecyclerView.Adapter<HotelAdapter.HotelViewHol
         boolean isCurrentlyFavorite = favoriteHotelIds.contains(hotel.getId());
 
         if (isCurrentlyFavorite) {
-            // Remove from favorites
             db.collection("users").document(userId)
                 .update("favorites", FieldValue.arrayRemove(hotel.getId()))
                 .addOnSuccessListener(aVoid -> {
@@ -132,22 +129,12 @@ public class HotelAdapter extends RecyclerView.Adapter<HotelAdapter.HotelViewHol
                     Toast.makeText(context, "Removed from favorites", Toast.LENGTH_SHORT).show();
                 });
         } else {
-            // Add to favorites
             db.collection("users").document(userId)
                 .update("favorites", FieldValue.arrayUnion(hotel.getId()))
                 .addOnSuccessListener(aVoid -> {
                     favoriteHotelIds.add(hotel.getId());
                     notifyItemChanged(position);
                     Toast.makeText(context, "Added to favorites ❤️", Toast.LENGTH_SHORT).show();
-                })
-                .addOnFailureListener(e -> {
-                    // Si le champ n'existe pas encore, on crée l'array
-                    db.collection("users").document(userId)
-                        .set(new java.util.HashMap<String, Object>() {{
-                            put("favorites", java.util.Arrays.asList(hotel.getId()));
-                        }}, com.google.firebase.firestore.SetOptions.merge());
-                    favoriteHotelIds.add(hotel.getId());
-                    notifyItemChanged(position);
                 });
         }
     }
@@ -157,12 +144,12 @@ public class HotelAdapter extends RecyclerView.Adapter<HotelAdapter.HotelViewHol
         return hotels.size();
     }
 
-    public static class HotelViewHolder extends RecyclerView.ViewHolder {
+    public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView ivPhoto;
         TextView tvName, tvCity, tvRating, tvPrice;
         ImageButton btnFavorite;
 
-        public HotelViewHolder(@NonNull View itemView) {
+        public ViewHolder(@NonNull View itemView) {
             super(itemView);
             ivPhoto = itemView.findViewById(R.id.ivHotelPhoto);
             tvName = itemView.findViewById(R.id.tvHotelName);

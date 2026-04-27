@@ -58,9 +58,16 @@
             android:name=".view.activity.WishlistActivity"
             android:exported="false" />
         <activity
+            android:name=".view.activity.MyBookingsActivity"
+            android:exported="false" />
+        <activity
             android:name=".view.activity.SmartSearchActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".view.activity.FullScreenImageActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
     </application>
 
 </manifest>

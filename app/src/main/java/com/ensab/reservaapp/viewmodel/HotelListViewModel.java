@@ -18,6 +18,9 @@ public class HotelListViewModel extends ViewModel {
     private final MutableLiveData<List<Hotel>> _filteredHotels = new MutableLiveData<>(new ArrayList<>());
     public LiveData<List<Hotel>> filteredHotels = _filteredHotels;
 
+    private final MutableLiveData<List<Hotel>> _topRelevantHotels = new MutableLiveData<>(new ArrayList<>());
+    public LiveData<List<Hotel>> topRelevantHotels = _topRelevantHotels;
+
     private final MutableLiveData<Boolean> _isLoading = new MutableLiveData<>(false);
     public LiveData<Boolean> isLoading = _isLoading;
 
@@ -40,7 +43,6 @@ public class HotelListViewModel extends ViewModel {
                     if (fullName != null && !fullName.isEmpty()) {
                         _userName.setValue(fullName.split(" ")[0]);
                     } else {
-                        // Fallback au nom d'email si fullName est vide
                         String email = auth.getCurrentUser().getEmail();
                         if (email != null) {
                             String name = email.split("@")[0];
@@ -58,6 +60,12 @@ public class HotelListViewModel extends ViewModel {
             public void onCallback(List<Hotel> hotels) {
                 _allHotels.setValue(hotels);
                 _filteredHotels.setValue(hotels);
+                
+                // Extraire les 4 mieux notés pour "Most Relevant"
+                List<Hotel> top4 = new ArrayList<>(hotels);
+                top4.sort((h1, h2) -> Double.compare(h2.getRating(), h1.getRating()));
+                _topRelevantHotels.setValue(top4.stream().limit(4).collect(Collectors.toList()));
+
                 _isLoading.setValue(false);
             }
 

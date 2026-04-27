@@ -19,16 +19,19 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.ensab.reservaapp.R;
 import com.ensab.reservaapp.data.NavigationHelper;
 import com.ensab.reservaapp.view.adapter.HotelAdapter;
+import com.ensab.reservaapp.view.adapter.HotelHorizontalAdapter;
 import com.ensab.reservaapp.viewmodel.HotelListViewModel;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import java.util.ArrayList;
 
 public class HotelListActivity extends AppCompatActivity {
 
-    private RecyclerView rvHotels;
+    private RecyclerView rvHotels, rvHotelsHorizontal;
     private HotelAdapter adapter;
+    private HotelHorizontalAdapter horizontalAdapter;
     private ProgressBar progressBar;
-    private TextView tvHotelCount, tvWelcomeName, tvSearch;
+    private TextView tvHotelCount, tvWelcomeName, tvSearch, tvViewAllHotels;
+    private View rlTopHotelsHeader;
     private HotelListViewModel viewModel;
 
     @Override
@@ -36,15 +39,27 @@ public class HotelListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_hotel_list);
 
+        // Vertical List
         rvHotels = findViewById(R.id.rvHotels);
+        rlTopHotelsHeader = findViewById(R.id.rlTopHotelsHeader);
+
+        // Horizontal List
+        rvHotelsHorizontal = findViewById(R.id.rvHotelsHorizontal);
+        tvViewAllHotels = findViewById(R.id.tvViewAllHotels);
+
         progressBar = findViewById(R.id.progressBar);
         tvHotelCount = findViewById(R.id.tvHotelCount);
         tvWelcomeName = findViewById(R.id.tvWelcomeName);
         tvSearch = findViewById(R.id.tvSearch);
 
+        // Setup Adapters
         rvHotels.setLayoutManager(new LinearLayoutManager(this));
         adapter = new HotelAdapter(new ArrayList<>(), this);
         rvHotels.setAdapter(adapter);
+
+        rvHotelsHorizontal.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        horizontalAdapter = new HotelHorizontalAdapter(new ArrayList<>(), this);
+        rvHotelsHorizontal.setAdapter(horizontalAdapter);
 
         viewModel = new ViewModelProvider(this).get(HotelListViewModel.class);
 
@@ -57,8 +72,24 @@ public class HotelListActivity extends AppCompatActivity {
             tvHotelCount.setText(hotels.size() + " résultats");
         });
 
+        viewModel.topRelevantHotels.observe(this, hotels -> {
+            horizontalAdapter.updateHotels(hotels);
+        });
+
         viewModel.isLoading.observe(this, isLoading -> {
             progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+        });
+
+        tvViewAllHotels.setOnClickListener(v -> {
+            if (rvHotels.getVisibility() == View.GONE) {
+                rvHotels.setVisibility(View.VISIBLE);
+                rlTopHotelsHeader.setVisibility(View.VISIBLE);
+                tvViewAllHotels.setText("Show less");
+            } else {
+                rvHotels.setVisibility(View.GONE);
+                rlTopHotelsHeader.setVisibility(View.GONE);
+                tvViewAllHotels.setText("View all >");
+            }
         });
 
         setupSearch();
