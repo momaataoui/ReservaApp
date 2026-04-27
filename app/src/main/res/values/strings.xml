@@ -47,4 +47,10 @@
 
     <!-- Google Sign-In -->
     <string name="default_web_client_id">106752576459-dss93oajhj921ju7uudla3i555kf486c.apps.googleusercontent.com</string>
+    <string name="mad_currency">%s MAD</string>
+    <string name="dh_currency">%d DH</string>
+    <string name="location_morocco">%s, Morocco</string>
+    <string name="reviews_count">(%d reviews)</string>
+    <string name="night_count_single">1 night</string>
+    <string name="night_count_multiple">%d nights</string>
 </resources>

@@ -21,20 +21,22 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.bumptech.glide.Glide;
 import com.ensab.reservaapp.R;
-import com.ensab.reservaapp.data.NavigationHelper;
+import com.ensab.reservaapp.data.ImageLoader;
+import com.ensab.reservaapp.databinding.ActivityProfileBinding;
+import com.ensab.reservaapp.util.NavigationHelper;
 import com.ensab.reservaapp.viewmodel.ProfileViewModel;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,11 +46,9 @@ import java.util.Locale;
 
 public class ProfileActivity extends AppCompatActivity {
 
-    private EditText etEditName, etEditPhone, etEditEmail;
-    private ShapeableImageView ivEditProfilePic;
+    private ActivityProfileBinding binding;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
-    private FirebaseStorage storage;
     private SharedPreferences sharedPreferences;
     private static final String SHARED_PREF_NAME = "user_session";
 
@@ -62,27 +62,31 @@ public class ProfileActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
+
         Window window = getWindow();
         window.setStatusBarColor(Color.TRANSPARENT);
-        WindowInsetsControllerCompat windowInsetsController = 
+        WindowInsetsControllerCompat windowInsetsController =
                 WindowCompat.getInsetsController(window, window.getDecorView());
-        windowInsetsController.setAppearanceLightStatusBars(false);
+        if (windowInsetsController != null) {
+            windowInsetsController.setAppearanceLightStatusBars(false);
+        }
 
-        setContentView(R.layout.dialog_edit_profile);
+        binding = ActivityProfileBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+
+        // Fix for navigation bar overlap
+        ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            binding.bottomNavContainer.setPadding(0, 0, 0, systemBars.bottom);
+            return insets;
+        });
 
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-        storage = FirebaseStorage.getInstance();
         sharedPreferences = getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
 
         // Initialisation du ViewModel
         viewModel = new ViewModelProvider(this).get(ProfileViewModel.class);
-
-        etEditName = findViewById(R.id.etEditName);
-        etEditPhone = findViewById(R.id.etEditPhone);
-        etEditEmail = findViewById(R.id.etEditEmail);
-        ivEditProfilePic = findViewById(R.id.ivEditProfilePic);
 
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) {
@@ -100,23 +104,23 @@ public class ProfileActivity extends AppCompatActivity {
         setupTextWatchers();
         initPhotoPickers();
 
-        findViewById(R.id.btnChangePic).setOnClickListener(v -> showPhotoOptionsDialog());
-        findViewById(R.id.btnSaveProfile).setOnClickListener(v -> saveProfileChanges());
-        findViewById(R.id.btnLogoutDialog).setOnClickListener(v -> logoutUser());
+        binding.btnChangePic.setOnClickListener(v -> showPhotoOptionsDialog());
+        binding.btnSaveProfile.setOnClickListener(v -> saveProfileChanges());
+        binding.btnLogoutDialog.setOnClickListener(v -> logoutUser());
 
         NavigationHelper.setSelectedItem(this, R.id.navProfile);
         setupNavigation();
     }
 
     private void setupTextWatchers() {
-        etEditName.addTextChangedListener(new SimpleTextWatcher() {
+        binding.etEditName.addTextChangedListener(new SimpleTextWatcher() {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 viewModel.name.setValue(s.toString());
             }
         });
 
-        etEditPhone.addTextChangedListener(new SimpleTextWatcher() {
+        binding.etEditPhone.addTextChangedListener(new SimpleTextWatcher() {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 viewModel.phone.setValue(s.toString());
@@ -125,31 +129,29 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void restoreDataFromViewModel() {
-        etEditName.setText(viewModel.name.getValue());
-        etEditEmail.setText(viewModel.email.getValue());
-        etEditPhone.setText(viewModel.phone.getValue());
-        
+        binding.etEditName.setText(viewModel.name.getValue());
+        binding.etEditEmail.setText(viewModel.email.getValue());
+        binding.etEditPhone.setText(viewModel.phone.getValue());
+
         String imageUrl = viewModel.profileImageUrl.getValue();
         if (imageUrl != null && !imageUrl.isEmpty()) {
-            Glide.with(this).load(imageUrl).into(ivEditProfilePic);
+            ImageLoader.getInstance().load(imageUrl, binding.ivEditProfilePic, R.drawable.profile);
         }
     }
 
     private void setupNavigation() {
-        findViewById(R.id.navDiscover).setOnClickListener(v -> NavigationHelper.fastNavigate(this, ChoiceActivity.class));
-        findViewById(R.id.navSaved).setOnClickListener(v -> NavigationHelper.fastNavigate(this, WishlistActivity.class));
-        findViewById(R.id.navBookings).setOnClickListener(v -> {
-            Toast.makeText(this, "Trips coming soon", Toast.LENGTH_SHORT).show();
-        });
+        binding.bottomNavContainer.findViewById(R.id.navDiscover).setOnClickListener(v -> NavigationHelper.fastNavigate(this, ChoiceActivity.class));
+        binding.bottomNavContainer.findViewById(R.id.navSaved).setOnClickListener(v -> NavigationHelper.fastNavigate(this, WishlistActivity.class));
+        binding.bottomNavContainer.findViewById(R.id.navBookings).setOnClickListener(v -> NavigationHelper.fastNavigate(this, MyBookingsActivity.class));
     }
 
     private void saveProfileChanges() {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user == null) return;
-        
+
         String userId = user.getUid();
-        String newName = etEditName.getText().toString().trim();
-        String newPhone = etEditPhone.getText().toString().trim();
+        String newName = binding.etEditName.getText().toString().trim();
+        String newPhone = binding.etEditPhone.getText().toString().trim();
         
         if (newName.isEmpty()) {
             Toast.makeText(this, "Name cannot be empty", Toast.LENGTH_SHORT).show();
@@ -248,22 +250,17 @@ public class ProfileActivity extends AppCompatActivity {
     private void uploadProfileImage(Uri imageUri) {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user == null) return;
-        
-        String userId = user.getUid();
-        StorageReference profileRef = storage.getReference().child("profile_images/" + userId + ".jpg");
 
-        profileRef.putFile(imageUri)
-            .addOnSuccessListener(taskSnapshot -> profileRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                String downloadUrl = uri.toString();
-                db.collection("users").document(userId)
-                    .update("profileImage", downloadUrl)
-                    .addOnSuccessListener(aVoid -> {
-                        viewModel.profileImageUrl.setValue(downloadUrl);
-                        Glide.with(this).load(downloadUrl).into(ivEditProfilePic);
-                        Toast.makeText(this, "Profile picture updated", Toast.LENGTH_SHORT).show();
-                    });
-            }))
-            .addOnFailureListener(e -> Toast.makeText(this, "Upload failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+        // Note: Actual file upload to Firebase Storage is disabled in free tier.
+        // We save the URI string to Firestore so it persists locally on this device.
+        String uriString = imageUri.toString();
+        db.collection("users").document(user.getUid())
+            .update("profileImage", uriString)
+            .addOnSuccessListener(aVoid -> {
+                binding.ivEditProfilePic.setImageURI(imageUri);
+                Toast.makeText(this, "Profile image updated locally", Toast.LENGTH_SHORT).show();
+            })
+            .addOnFailureListener(e -> Toast.makeText(this, "Failed to save image reference", Toast.LENGTH_SHORT).show());
     }
 
     private void loadUserData() {

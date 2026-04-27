@@ -13,6 +13,9 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.credentials.Credential;
 import androidx.credentials.CredentialManager;
 import androidx.credentials.GetCredentialRequest;
@@ -20,6 +23,8 @@ import androidx.credentials.GetCredentialResponse;
 import androidx.credentials.exceptions.GetCredentialException;
 
 import com.ensab.reservaapp.R;
+import com.ensab.reservaapp.databinding.ActivityLoginBinding;
+import com.ensab.reservaapp.util.NavigationHelper;
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption;
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
 import com.google.android.material.card.MaterialCardView;
@@ -35,9 +40,7 @@ import java.util.Map;
 public class LoginActivity extends AppCompatActivity {
 
     private static final String TAG = "LoginActivity";
-    private EditText etEmail, etPassword;
-    private Button btnLogin;
-    private MaterialCardView btnGoogle;
+    private ActivityLoginBinding binding;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
     private SharedPreferences sharedPreferences;
@@ -59,25 +62,26 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        setContentView(R.layout.activity_login);
+        binding = ActivityLoginBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
-        etEmail = findViewById(R.id.etEmail);
-        etPassword = findViewById(R.id.etPassword);
-        btnLogin = findViewById(R.id.btnLogin);
-        btnGoogle = findViewById(R.id.btnGoogle);
-        TextView tvSignUp = findViewById(R.id.tvSignUp);
-        TextView tvForgotPassword = findViewById(R.id.tvForgotPassword);
+        // Fix for navigation bar overlap
+        ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
 
-        btnLogin.setOnClickListener(v -> handleEmailLogin());
-        btnGoogle.setOnClickListener(v -> signInWithGoogle());
+        binding.btnLogin.setOnClickListener(v -> handleEmailLogin());
+        binding.btnGoogle.setOnClickListener(v -> signInWithGoogle());
 
-        tvSignUp.setOnClickListener(v -> startActivity(new Intent(this, SignUpActivity.class)));
-        tvForgotPassword.setOnClickListener(v -> startActivity(new Intent(this, ForgotPasswordActivity.class)));
+        binding.tvSignUp.setOnClickListener(v -> startActivity(new Intent(this, SignUpActivity.class)));
+        binding.tvForgotPassword.setOnClickListener(v -> startActivity(new Intent(this, ForgotPasswordActivity.class)));
     }
 
     private void handleEmailLogin() {
-        String email = etEmail.getText().toString().trim();
-        String password = etPassword.getText().toString().trim();
+        String email = binding.etEmail.getText().toString().trim();
+        String password = binding.etPassword.getText().toString().trim();
 
         if (email.isEmpty() || password.isEmpty()) {
             Toast.makeText(this, "Veuillez entrer l'email et le mot de passe", Toast.LENGTH_SHORT).show();
@@ -184,6 +188,12 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void checkUserRoleAndRedirect(FirebaseUser user) {
+        if (!user.isEmailVerified()) {
+            Toast.makeText(this, "Please verify your email first.", Toast.LENGTH_LONG).show();
+            mAuth.signOut();
+            return;
+        }
+
         db.collection("users").document(user.getUid()).get()
             .addOnSuccessListener(documentSnapshot -> {
                 String role = documentSnapshot.getString("role");
@@ -191,15 +201,13 @@ public class LoginActivity extends AppCompatActivity {
                     // Pour le moment, redirection vers ChoiceActivity car admin n'est pas implémenté
                     // Mais on loggue l'info pour préparer l'avenir
                     Log.d(TAG, "Admin connecté !");
-                    startActivity(new Intent(this, ChoiceActivity.class));
+                    NavigationHelper.fastNavigate(this, ChoiceActivity.class, true);
                 } else {
-                    startActivity(new Intent(this, ChoiceActivity.class));
+                    NavigationHelper.fastNavigate(this, ChoiceActivity.class, true);
                 }
-                finish();
             })
             .addOnFailureListener(e -> {
-                startActivity(new Intent(this, ChoiceActivity.class));
-                finish();
+                NavigationHelper.fastNavigate(this, ChoiceActivity.class, true);
             });
     }
 

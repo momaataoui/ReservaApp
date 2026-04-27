@@ -9,7 +9,7 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
+import com.ensab.reservaapp.data.ImageLoader;
 import com.ensab.reservaapp.R;
 
 import java.util.List;
@@ -43,11 +43,7 @@ public class HotelImageAdapter extends RecyclerView.Adapter<HotelImageAdapter.Vi
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         String url = imageUrls.get(position);
-        Glide.with(context)
-                .load(url)
-                .centerCrop()
-                .placeholder(R.drawable.mamounia)
-                .into(holder.imageView);
+        ImageLoader.getInstance().load(url, holder.imageView, R.drawable.mamounia);
 
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {

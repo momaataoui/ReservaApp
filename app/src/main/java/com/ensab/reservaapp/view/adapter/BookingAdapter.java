@@ -10,7 +10,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
+import com.ensab.reservaapp.data.ImageLoader;
 import com.ensab.reservaapp.R;
 import com.ensab.reservaapp.model.Booking;
 import com.google.android.material.button.MaterialButton;
@@ -111,11 +111,7 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
         });
 
         if (booking.getHotelImageUrl() != null && !booking.getHotelImageUrl().isEmpty()) {
-            Glide.with(holder.itemView.getContext())
-                .load(booking.getHotelImageUrl())
-                .centerCrop()
-                .placeholder(R.drawable.mamounia)
-                .into(holder.ivHotelImage);
+            ImageLoader.getInstance().load(booking.getHotelImageUrl(), holder.ivHotelImage, R.drawable.mamounia);
         } else {
             holder.ivHotelImage.setImageResource(R.drawable.mamounia);
         }

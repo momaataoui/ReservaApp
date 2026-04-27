@@ -12,83 +12,83 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.ensab.reservaapp.R;
-import com.ensab.reservaapp.data.NavigationHelper;
-import com.ensab.reservaapp.view.adapter.HotelAdapter;
-import com.ensab.reservaapp.view.adapter.HotelHorizontalAdapter;
+import com.ensab.reservaapp.util.NavigationHelper;
+import com.ensab.reservaapp.databinding.ActivityHotelListBinding;
+import com.ensab.reservaapp.view.adapter.UnifiedHotelAdapter;
 import com.ensab.reservaapp.viewmodel.HotelListViewModel;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import java.util.ArrayList;
 
 public class HotelListActivity extends AppCompatActivity {
 
-    private RecyclerView rvHotels, rvHotelsHorizontal;
-    private HotelAdapter adapter;
-    private HotelHorizontalAdapter horizontalAdapter;
-    private ProgressBar progressBar;
-    private TextView tvHotelCount, tvWelcomeName, tvSearch, tvViewAllHotels;
-    private View rlTopHotelsHeader;
+    private ActivityHotelListBinding binding;
+    private UnifiedHotelAdapter adapter;
+    private UnifiedHotelAdapter horizontalAdapter;
     private HotelListViewModel viewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_hotel_list);
+        binding = ActivityHotelListBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
-        // Vertical List
-        rvHotels = findViewById(R.id.rvHotels);
-        rlTopHotelsHeader = findViewById(R.id.rlTopHotelsHeader);
-
-        // Horizontal List
-        rvHotelsHorizontal = findViewById(R.id.rvHotelsHorizontal);
-        tvViewAllHotels = findViewById(R.id.tvViewAllHotels);
-
-        progressBar = findViewById(R.id.progressBar);
-        tvHotelCount = findViewById(R.id.tvHotelCount);
-        tvWelcomeName = findViewById(R.id.tvWelcomeName);
-        tvSearch = findViewById(R.id.tvSearch);
+        // Fix for navigation bar overlap
+        ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            binding.bottomNavContainer.setPadding(0, 0, 0, systemBars.bottom);
+            return insets;
+        });
 
         // Setup Adapters
-        rvHotels.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new HotelAdapter(new ArrayList<>(), this);
-        rvHotels.setAdapter(adapter);
+        binding.rvHotels.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new UnifiedHotelAdapter(false, (hotel, position) -> viewModel.toggleFavorite(hotel));
+        binding.rvHotels.setAdapter(adapter);
 
-        rvHotelsHorizontal.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-        horizontalAdapter = new HotelHorizontalAdapter(new ArrayList<>(), this);
-        rvHotelsHorizontal.setAdapter(horizontalAdapter);
+        binding.rvHotelsHorizontal.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        horizontalAdapter = new UnifiedHotelAdapter(true, (hotel, position) -> viewModel.toggleFavorite(hotel));
+        binding.rvHotelsHorizontal.setAdapter(horizontalAdapter);
 
         viewModel = new ViewModelProvider(this).get(HotelListViewModel.class);
 
         viewModel.userName.observe(this, name -> {
-            if (!name.isEmpty()) tvWelcomeName.setText("Hey, " + name);
+            if (!name.isEmpty()) binding.tvWelcomeName.setText("Hey, " + name);
         });
 
         viewModel.filteredHotels.observe(this, hotels -> {
-            adapter.updateHotels(hotels);
-            tvHotelCount.setText(hotels.size() + " résultats");
+            adapter.submitList(hotels);
+            binding.tvHotelCount.setText(hotels.size() + " résultats");
         });
 
         viewModel.topRelevantHotels.observe(this, hotels -> {
-            horizontalAdapter.updateHotels(hotels);
+            horizontalAdapter.submitList(hotels);
+        });
+
+        viewModel.favoriteIds.observe(this, ids -> {
+            adapter.setFavoriteIds(ids);
+            horizontalAdapter.setFavoriteIds(ids);
         });
 
         viewModel.isLoading.observe(this, isLoading -> {
-            progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+            binding.progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
         });
 
-        tvViewAllHotels.setOnClickListener(v -> {
-            if (rvHotels.getVisibility() == View.GONE) {
-                rvHotels.setVisibility(View.VISIBLE);
-                rlTopHotelsHeader.setVisibility(View.VISIBLE);
-                tvViewAllHotels.setText("Show less");
+        binding.tvViewAllHotels.setOnClickListener(v -> {
+            if (binding.rvHotels.getVisibility() == View.GONE) {
+                binding.rvHotels.setVisibility(View.VISIBLE);
+                binding.rlTopHotelsHeader.setVisibility(View.VISIBLE);
+                binding.tvViewAllHotels.setText("Show less");
             } else {
-                rvHotels.setVisibility(View.GONE);
-                rlTopHotelsHeader.setVisibility(View.GONE);
-                tvViewAllHotels.setText("View all >");
+                binding.rvHotels.setVisibility(View.GONE);
+                binding.rlTopHotelsHeader.setVisibility(View.GONE);
+                binding.tvViewAllHotels.setText("View all >");
             }
         });
 
@@ -101,7 +101,7 @@ public class HotelListActivity extends AppCompatActivity {
     }
 
     private void setupSearch() {
-        findViewById(R.id.cvSearchBar).setOnClickListener(v -> showSearchBottomSheet());
+        binding.cvSearchBar.setOnClickListener(v -> showSearchBottomSheet());
     }
 
     private void showSearchBottomSheet() {
@@ -122,7 +122,7 @@ public class HotelListActivity extends AppCompatActivity {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 viewModel.filterHotels(s.toString());
-                tvSearch.setText(s.length() > 0 ? s.toString() : "Start your search");
+                binding.tvSearch.setText(s.length() > 0 ? s.toString() : "Start your search");
             }
             @Override
             public void afterTextChanged(Editable s) {}
@@ -132,26 +132,26 @@ public class HotelListActivity extends AppCompatActivity {
     }
 
     private void updateSearch(String query, BottomSheetDialog dialog) {
-        tvSearch.setText(query);
+        binding.tvSearch.setText(query);
         viewModel.filterHotels(query);
         dialog.dismiss();
     }
 
     private void setupFilters() {
-        findViewById(R.id.chipAll).setOnClickListener(v -> {
-            tvSearch.setText("Start your search");
+        binding.chipAll.setOnClickListener(v -> {
+            binding.tvSearch.setText("Start your search");
             viewModel.filterHotels("");
         });
         
-        findViewById(R.id.chipLuxe).setOnClickListener(v -> viewModel.filterLuxe());
-        findViewById(R.id.chipPrice).setOnClickListener(v -> viewModel.sortByPrice());
-        findViewById(R.id.chipRating).setOnClickListener(v -> viewModel.sortByRating());
+        binding.chipLuxe.setOnClickListener(v -> viewModel.filterLuxe());
+        binding.chipPrice.setOnClickListener(v -> viewModel.sortByPrice());
+        binding.chipRating.setOnClickListener(v -> viewModel.sortByRating());
     }
 
     private void setupNotifications() {
-        findViewById(R.id.btnNotifications).setOnClickListener(v -> {
+        binding.btnNotifications.setOnClickListener(v -> {
             Toast.makeText(this, "Vous avez 3 nouvelles offres !", Toast.LENGTH_LONG).show();
-            findViewById(R.id.tvNotificationBadge).setVisibility(View.GONE);
+            binding.tvNotificationBadge.setVisibility(View.GONE);
         });
     }
 

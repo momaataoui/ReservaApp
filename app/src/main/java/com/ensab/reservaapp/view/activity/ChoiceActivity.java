@@ -10,16 +10,19 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.ensab.reservaapp.R;
 import com.ensab.reservaapp.data.FirebaseHelper;
-import com.ensab.reservaapp.data.NavigationHelper;
+import com.ensab.reservaapp.databinding.ActivityChoiceBinding;
+import com.ensab.reservaapp.util.NavigationHelper;
 import com.google.android.material.card.MaterialCardView;
 
 public class ChoiceActivity extends AppCompatActivity {
 
+    private ActivityChoiceBinding binding;
     private FirebaseHelper firebaseHelper;
 
     @Override
@@ -29,21 +32,19 @@ public class ChoiceActivity extends AppCompatActivity {
         Window window = getWindow();
         window.setStatusBarColor(Color.WHITE);
         WindowInsetsControllerCompat windowInsetsController = 
-                ViewCompat.getWindowInsetsController(window.getDecorView());
+                WindowCompat.getInsetsController(window, window.getDecorView());
         if (windowInsetsController != null) {
             windowInsetsController.setAppearanceLightStatusBars(true);
         }
 
-        setContentView(R.layout.activity_choice);
+        binding = ActivityChoiceBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
         
-        View root = findViewById(R.id.main);
-        if (root != null) {
-            ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
-                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0);
-                return insets;
-            });
-        }
+        ViewCompat.setOnApplyWindowInsetsListener(binding.main, (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
 
         firebaseHelper = new FirebaseHelper();
         
@@ -65,44 +66,17 @@ public class ChoiceActivity extends AppCompatActivity {
     }
 
     private void setupCards() {
-        MaterialCardView cardHotels = findViewById(R.id.cardHotels);
-        MaterialCardView cardRestaurants = findViewById(R.id.cardRestaurants);
-        MaterialCardView cardSmartAI = findViewById(R.id.cardSmartAI);
-
-        if (cardHotels != null) {
-            cardHotels.setOnClickListener(v -> NavigationHelper.fastNavigate(this, HotelListActivity.class));
-        }
-
-        if (cardRestaurants != null) {
-            cardRestaurants.setOnClickListener(v -> Toast.makeText(this, "Coming Soon", Toast.LENGTH_SHORT).show());
-        }
-
-        if (cardSmartAI != null) {
-            cardSmartAI.setOnClickListener(v -> NavigationHelper.fastNavigate(this, SmartSearchActivity.class));
-        }
+        binding.cardHotels.setOnClickListener(v -> NavigationHelper.fastNavigate(this, HotelListActivity.class));
+        binding.cardRestaurants.setOnClickListener(v -> Toast.makeText(this, "Coming Soon", Toast.LENGTH_SHORT).show());
+        binding.cardSmartAI.setOnClickListener(v -> NavigationHelper.fastNavigate(this, SmartSearchActivity.class));
     }
 
     private void setupNavigation() {
-        View navProfile = findViewById(R.id.navProfile);
-        if (navProfile != null) {
-            navProfile.setOnClickListener(v -> NavigationHelper.fastNavigate(this, ProfileActivity.class));
-        }
-
-        View navSaved = findViewById(R.id.navSaved);
-        if (navSaved != null) {
-            navSaved.setOnClickListener(v -> NavigationHelper.fastNavigate(this, WishlistActivity.class));
-        }
-
-        View navBookings = findViewById(R.id.navBookings);
-        if (navBookings != null) {
-            navBookings.setOnClickListener(v -> NavigationHelper.fastNavigate(this, MyBookingsActivity.class));
-        }
-        
-        View navDiscover = findViewById(R.id.navDiscover);
-        if (navDiscover != null) {
-            navDiscover.setOnClickListener(v -> {
-                // Already on Discover
-            });
-        }
+        binding.bottomNav.getRoot().findViewById(R.id.navProfile).setOnClickListener(v -> NavigationHelper.fastNavigate(this, ProfileActivity.class));
+        binding.bottomNav.getRoot().findViewById(R.id.navSaved).setOnClickListener(v -> NavigationHelper.fastNavigate(this, WishlistActivity.class));
+        binding.bottomNav.getRoot().findViewById(R.id.navBookings).setOnClickListener(v -> NavigationHelper.fastNavigate(this, MyBookingsActivity.class));
+        binding.bottomNav.getRoot().findViewById(R.id.navDiscover).setOnClickListener(v -> {
+            // Already on Discover
+        });
     }
 }

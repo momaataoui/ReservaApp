@@ -12,14 +12,20 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.ensab.reservaapp.R;
-import com.ensab.reservaapp.data.NavigationHelper;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
+import com.ensab.reservaapp.R;
+import com.ensab.reservaapp.databinding.ActivityMyBookingsBinding;
+import com.ensab.reservaapp.util.NavigationHelper;
 import com.ensab.reservaapp.model.Booking;
 import com.ensab.reservaapp.view.adapter.BookingAdapter;
 import com.google.firebase.auth.FirebaseAuth;
@@ -32,11 +38,9 @@ import java.util.List;
 
 public class MyBookingsActivity extends AppCompatActivity {
 
-    private RecyclerView rvBookings;
+    private ActivityMyBookingsBinding binding;
     private BookingAdapter adapter;
     private List<Booking> bookingList;
-    private LinearLayout emptyState;
-    private ProgressBar progressBar;
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
 
@@ -46,20 +50,24 @@ public class MyBookingsActivity extends AppCompatActivity {
 
         Window window = getWindow();
         window.setStatusBarColor(Color.WHITE);
-        WindowInsetsControllerCompat controller = ViewCompat.getWindowInsetsController(window.getDecorView());
+        WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(window, window.getDecorView());
         if (controller != null) controller.setAppearanceLightStatusBars(true);
 
-        setContentView(R.layout.activity_my_bookings);
+        binding = ActivityMyBookingsBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+
+        // Fix for navigation bar overlap
+        ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            binding.bottomNavContainer.setPadding(0, 0, 0, systemBars.bottom);
+            return insets;
+        });
 
         db = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
         bookingList = new ArrayList<>();
 
-        rvBookings = findViewById(R.id.rvBookings);
-        emptyState = findViewById(R.id.emptyState);
-        progressBar = findViewById(R.id.progressBar);
-
-        rvBookings.setLayoutManager(new LinearLayoutManager(this));
+        binding.rvBookings.setLayoutManager(new LinearLayoutManager(this));
         adapter = new BookingAdapter(bookingList);
         
         adapter.setOnBookingActionListener(new BookingAdapter.OnBookingActionListener() {
@@ -74,9 +82,9 @@ public class MyBookingsActivity extends AppCompatActivity {
             }
         });
         
-        rvBookings.setAdapter(adapter);
+        binding.rvBookings.setAdapter(adapter);
 
-        findViewById(R.id.btnExplore).setOnClickListener(v -> {
+        binding.btnExplore.setOnClickListener(v -> {
             NavigationHelper.fastNavigate(this, ChoiceActivity.class);
         });
 
@@ -108,108 +116,123 @@ public class MyBookingsActivity extends AppCompatActivity {
     }
 
     private void cancelBooking(Booking booking) {
-        progressBar.setVisibility(View.VISIBLE);
+        binding.progressBar.setVisibility(View.VISIBLE);
         db.collection("bookings").document(booking.getId())
             .update("status", "Cancelled")
             .addOnSuccessListener(aVoid -> {
-                progressBar.setVisibility(View.GONE);
+                binding.progressBar.setVisibility(View.GONE);
                 Toast.makeText(this, "Reservation cancelled", Toast.LENGTH_SHORT).show();
                 loadBookings(); // Refresh list
             })
             .addOnFailureListener(e -> {
-                progressBar.setVisibility(View.GONE);
+                binding.progressBar.setVisibility(View.GONE);
                 Toast.makeText(this, "Error cancelling reservation", Toast.LENGTH_SHORT).show();
             });
     }
 
     private void deleteBooking(Booking booking) {
-        progressBar.setVisibility(View.VISIBLE);
+        binding.progressBar.setVisibility(View.VISIBLE);
         db.collection("bookings").document(booking.getId())
             .delete()
             .addOnSuccessListener(aVoid -> {
-                progressBar.setVisibility(View.GONE);
+                binding.progressBar.setVisibility(View.GONE);
                 Toast.makeText(this, "Trip removed", Toast.LENGTH_SHORT).show();
                 loadBookings(); // Refresh list
             })
             .addOnFailureListener(e -> {
-                progressBar.setVisibility(View.GONE);
+                binding.progressBar.setVisibility(View.GONE);
                 Toast.makeText(this, "Error removing trip", Toast.LENGTH_SHORT).show();
             });
+    }
+
+    private com.google.firebase.firestore.ListenerRegistration bookingsListener;
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (bookingsListener != null) {
+            bookingsListener.remove();
+        }
     }
 
     private void loadBookings() {
         if (mAuth.getCurrentUser() == null) return;
 
-        progressBar.setVisibility(View.VISIBLE);
+        binding.progressBar.setVisibility(View.VISIBLE);
         String userId = mAuth.getCurrentUser().getUid();
 
-        db.collection("bookings")
+        if (bookingsListener != null) {
+            bookingsListener.remove();
+        }
+
+        bookingsListener = db.collection("bookings")
             .whereEqualTo("userId", userId)
-            .get()
-            .addOnSuccessListener(queryDocumentSnapshots -> {
-                progressBar.setVisibility(View.GONE);
-                bookingList.clear();
-                for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                    try {
-                        Booking booking = new Booking();
-                        booking.setId(doc.getId());
-                        booking.setUserId(doc.getString("userId"));
-                        booking.setHotelId(doc.getString("hotelId"));
-                        booking.setHotelName(doc.getString("hotelName"));
-                        booking.setHotelLocation(doc.getString("hotelLocation"));
-                        booking.setHotelImageUrl(doc.getString("hotelImageUrl"));
-                        booking.setStatus(doc.getString("status"));
-                        
-                        Long totalPrice = doc.getLong("totalPrice");
-                        if (totalPrice != null) booking.setTotalPrice(totalPrice.intValue());
+            .addSnapshotListener((queryDocumentSnapshots, e) -> {
+                binding.progressBar.setVisibility(View.GONE);
+                
+                if (e != null) {
+                    Log.e("MyBookings", "Listen failed.", e);
+                    Toast.makeText(this, "Error loading trips", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
-                        Long adults = doc.getLong("adults");
-                        if (adults != null) booking.setAdults(adults.intValue());
+                if (queryDocumentSnapshots != null) {
+                    bookingList.clear();
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        try {
+                            Booking booking = new Booking();
+                            booking.setId(doc.getId());
+                            booking.setUserId(doc.getString("userId"));
+                            booking.setHotelId(doc.getString("hotelId"));
+                            booking.setHotelName(doc.getString("hotelName"));
+                            booking.setHotelLocation(doc.getString("hotelLocation"));
+                            booking.setHotelImageUrl(doc.getString("hotelImageUrl"));
+                            booking.setStatus(doc.getString("status"));
+                            
+                            Long totalPrice = doc.getLong("totalPrice");
+                            if (totalPrice != null) booking.setTotalPrice(totalPrice.intValue());
 
-                        Long children = doc.getLong("children");
-                        if (children != null) booking.setChildren(children.intValue());
+                            Long adults = doc.getLong("adults");
+                            if (adults != null) booking.setAdults(adults.intValue());
 
-                        Object ci = doc.get("checkIn");
-                        if (ci instanceof Long) {
-                            booking.setCheckIn((Long) ci);
-                        } else if (ci instanceof com.google.firebase.Timestamp) {
-                            booking.setCheckIn(((com.google.firebase.Timestamp) ci).toDate().getTime());
+                            Long children = doc.getLong("children");
+                            if (children != null) booking.setChildren(children.intValue());
+
+                            Object ci = doc.get("checkIn");
+                            if (ci instanceof Long) {
+                                booking.setCheckIn((Long) ci);
+                            } else if (ci instanceof com.google.firebase.Timestamp) {
+                                booking.setCheckIn(((com.google.firebase.Timestamp) ci).toDate().getTime());
+                            }
+
+                            Object co = doc.get("checkOut");
+                            if (co instanceof Long) {
+                                booking.setCheckOut((Long) co);
+                            } else if (co instanceof com.google.firebase.Timestamp) {
+                                booking.setCheckOut(((com.google.firebase.Timestamp) co).toDate().getTime());
+                            }
+
+                            bookingList.add(booking);
+                        } catch (Exception ex) {
+                            Log.e("MyBookings", "Error parsing booking document: " + doc.getId(), ex);
                         }
+                    }
 
-                        Object co = doc.get("checkOut");
-                        if (co instanceof Long) {
-                            booking.setCheckOut((Long) co);
-                        } else if (co instanceof com.google.firebase.Timestamp) {
-                            booking.setCheckOut(((com.google.firebase.Timestamp) co).toDate().getTime());
-                        }
-
-                        bookingList.add(booking);
-                    } catch (Exception e) {
-                        Log.e("MyBookings", "Error parsing booking document: " + doc.getId(), e);
+                    if (bookingList.isEmpty()) {
+                        binding.emptyState.setVisibility(View.VISIBLE);
+                        binding.rvBookings.setVisibility(View.GONE);
+                    } else {
+                        binding.emptyState.setVisibility(View.GONE);
+                        binding.rvBookings.setVisibility(View.VISIBLE);
+                        adapter.updateBookings(bookingList);
                     }
                 }
-
-                if (bookingList.isEmpty()) {
-                    emptyState.setVisibility(View.VISIBLE);
-                    rvBookings.setVisibility(View.GONE);
-                } else {
-                    emptyState.setVisibility(View.GONE);
-                    rvBookings.setVisibility(View.VISIBLE);
-                    adapter.updateBookings(bookingList);
-                }
-            })
-            .addOnFailureListener(e -> {
-                progressBar.setVisibility(View.GONE);
-                Toast.makeText(this, "Error loading trips", Toast.LENGTH_SHORT).show();
             });
     }
 
     private void setupNavigation() {
-        findViewById(R.id.navDiscover).setOnClickListener(v -> NavigationHelper.fastNavigate(this, ChoiceActivity.class));
-        findViewById(R.id.navSaved).setOnClickListener(v -> NavigationHelper.fastNavigate(this, WishlistActivity.class));
-        findViewById(R.id.navProfile).setOnClickListener(v -> NavigationHelper.fastNavigate(this, ProfileActivity.class));
-        findViewById(R.id.navBookings).setOnClickListener(v -> {
-            // Already here
-        });
+        binding.bottomNavContainer.findViewById(R.id.navDiscover).setOnClickListener(v -> NavigationHelper.fastNavigate(this, ChoiceActivity.class));
+        binding.bottomNavContainer.findViewById(R.id.navSaved).setOnClickListener(v -> NavigationHelper.fastNavigate(this, WishlistActivity.class));
+        binding.bottomNavContainer.findViewById(R.id.navProfile).setOnClickListener(v -> NavigationHelper.fastNavigate(this, ProfileActivity.class));
     }
 }

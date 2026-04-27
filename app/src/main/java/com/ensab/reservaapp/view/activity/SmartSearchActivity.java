@@ -8,11 +8,15 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.ensab.reservaapp.R;
-import com.ensab.reservaapp.data.NavigationHelper;
+import com.ensab.reservaapp.databinding.ActivitySmartSearchBinding;
+import com.ensab.reservaapp.util.NavigationHelper;
 import com.ensab.reservaapp.view.adapter.ChatAdapter;
 import com.ensab.reservaapp.viewmodel.ChatViewModel;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -20,48 +24,48 @@ import java.util.ArrayList;
 
 public class SmartSearchActivity extends AppCompatActivity {
 
-    private RecyclerView rvChat;
+    private ActivitySmartSearchBinding binding;
     private ChatAdapter adapter;
-    private EditText etMessage;
-    private FloatingActionButton btnSend;
-    private ProgressBar progressBar;
     private ChatViewModel viewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_smart_search);
+        binding = ActivitySmartSearchBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
-        rvChat = findViewById(R.id.rvChat);
-        etMessage = findViewById(R.id.etMessage);
-        btnSend = findViewById(R.id.btnSend);
-        progressBar = findViewById(R.id.progressBar);
+        // Fix for system bars (status bar and navigation bar) overlap
+        ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setStackFromEnd(true);
-        rvChat.setLayoutManager(layoutManager);
+        binding.rvChat.setLayoutManager(layoutManager);
         
         adapter = new ChatAdapter(new ArrayList<>());
-        rvChat.setAdapter(adapter);
+        binding.rvChat.setAdapter(adapter);
 
         viewModel = new ViewModelProvider(this).get(ChatViewModel.class);
 
         viewModel.messages.observe(this, chatMessages -> {
             adapter.updateMessages(chatMessages);
             if (!chatMessages.isEmpty()) {
-                rvChat.smoothScrollToPosition(chatMessages.size() - 1);
+                binding.rvChat.smoothScrollToPosition(chatMessages.size() - 1);
             }
         });
 
         viewModel.isLoading.observe(this, isLoading -> {
-            progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+            binding.progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
         });
 
-        btnSend.setOnClickListener(v -> {
-            String text = etMessage.getText().toString().trim();
+        binding.btnSend.setOnClickListener(v -> {
+            String text = binding.etMessage.getText().toString().trim();
             if (!text.isEmpty()) {
                 viewModel.sendMessage(text);
-                etMessage.setText("");
+                binding.etMessage.setText("");
             }
         });
 
@@ -69,25 +73,20 @@ public class SmartSearchActivity extends AppCompatActivity {
     }
 
     private void setupSuggestions() {
-        View suggestionSearch = findViewById(R.id.suggestionSearch);
-        View suggestionBookings = findViewById(R.id.suggestionBookings);
-        View suggestionHelp = findViewById(R.id.suggestionHelp);
-
-        if (suggestionSearch != null) {
-            suggestionSearch.setOnClickListener(v -> {
+        if (binding.suggestionSearch != null) {
+            binding.suggestionSearch.setOnClickListener(v -> {
                 NavigationHelper.fastNavigate(this, HotelListActivity.class);
             });
         }
 
-        if (suggestionBookings != null) {
-            suggestionBookings.setOnClickListener(v -> {
-                Toast.makeText(this, "Redirection vers mes réservations...", Toast.LENGTH_SHORT).show();
-                // Vous pouvez ajouter l'Intent vers votre activité de réservations ici
+        if (binding.suggestionBookings != null) {
+            binding.suggestionBookings.setOnClickListener(v -> {
+                NavigationHelper.fastNavigate(this, MyBookingsActivity.class);
             });
         }
 
-        if (suggestionHelp != null) {
-            suggestionHelp.setOnClickListener(v -> {
+        if (binding.suggestionHelp != null) {
+            binding.suggestionHelp.setOnClickListener(v -> {
                 viewModel.sendMessage("J'ai besoin d'aide pour utiliser l'application.");
             });
         }

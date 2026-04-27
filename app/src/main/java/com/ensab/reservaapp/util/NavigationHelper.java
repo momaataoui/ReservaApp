@@ -1,4 +1,4 @@
-package com.ensab.reservaapp.data;
+package com.ensab.reservaapp.util;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -33,17 +33,22 @@ public class NavigationHelper {
 
     // Nouvelle méthode pour une navigation ultra-rapide
     public static void fastNavigate(Activity currentActivity, Class<?> targetClass) {
+        fastNavigate(currentActivity, targetClass, false);
+    }
+
+    public static void fastNavigate(Activity currentActivity, Class<?> targetClass, boolean finishCurrent) {
         if (currentActivity.getClass().equals(targetClass)) return;
 
         Intent intent = new Intent(currentActivity, targetClass);
         // FLAG_ACTIVITY_NO_ANIMATION : Supprime l'animation de transition pour un effet instantané
         intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         currentActivity.startActivity(intent);
-        
+
         // Supprime l'animation de sortie
         currentActivity.overridePendingTransition(0, 0);
-        
-        // On ne finit pas l'activité pour permettre un retour rapide via REORDER_TO_FRONT
-        // sauf si c'est nécessaire (ex: login vers home)
+
+        if (finishCurrent) {
+            currentActivity.finish();
+        }
     }
 }
