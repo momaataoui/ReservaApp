@@ -20,8 +20,8 @@ import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.ensab.reservaapp.R;
-import com.ensab.reservaapp.util.NavigationHelper;
 import com.ensab.reservaapp.databinding.ActivityHotelDetailBinding;
+import com.ensab.reservaapp.util.NavigationHelper;
 import com.ensab.reservaapp.view.adapter.HotelImageAdapter;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 public class HotelDetailActivity extends AppCompatActivity {
 
@@ -80,8 +81,6 @@ public class HotelDetailActivity extends AppCompatActivity {
         // Fix for navigation bar overlap
         ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            // This activity has a bottom pricing bar, let's add padding to it
-            binding.getRoot().findViewById(android.R.id.content); // Not needed, use binding
             v.setPadding(0, 0, 0, systemBars.bottom);
             return insets;
         });
@@ -185,11 +184,6 @@ public class HotelDetailActivity extends AppCompatActivity {
         }
 
         HotelImageAdapter adapter = new HotelImageAdapter(hotelImages, this);
-        adapter.setOnImageClickListener(position -> {
-            Intent intent = new Intent(this, FullScreenImageActivity.class);
-            intent.putExtra(FullScreenImageActivity.EXTRA_IMAGE_URL, hotelImages.get(position));
-            startActivity(intent);
-        });
         binding.viewPagerImages.setAdapter(adapter);
         new TabLayoutMediator(binding.tabLayoutIndicators, binding.viewPagerImages, (tab, pos) -> {}).attach();
 
@@ -197,7 +191,7 @@ public class HotelDetailActivity extends AppCompatActivity {
             @Override
             public void onPageSelected(int position) {
                 super.onPageSelected(position);
-                binding.tvImageCounter.setText(getString(R.string.app_name).equals("") ? (position+1) + " / " + hotelImages.size() : (position+1) + " / " + hotelImages.size());
+                binding.tvImageCounter.setText(String.format(Locale.getDefault(), "%d / %d", position + 1, hotelImages.size()));
             }
         });
     }
@@ -208,7 +202,7 @@ public class HotelDetailActivity extends AppCompatActivity {
         binding.cardCheckIn.setOnClickListener(v -> showDatePicker(true));
         binding.cardCheckOut.setOnClickListener(v -> showDatePicker(false));
 
-        binding.cardMapPlaceholder.setOnClickListener(v -> {
+        binding.cardMap.setOnClickListener(v -> {
             Uri mapUri = Uri.parse("geo:0,0?q=" + Uri.encode(binding.tvHotelName.getText() + " " + binding.tvHotelLocationDetail.getText()));
             Intent mapIntent = new Intent(Intent.ACTION_VIEW, mapUri);
             mapIntent.setPackage("com.google.android.apps.maps");
@@ -246,7 +240,7 @@ public class HotelDetailActivity extends AppCompatActivity {
         bsCheckOut.setText(binding.tvCheckOutDate.getText());
         
         long diff = checkOutTimestamp - checkInTimestamp;
-        int nights = (int) (diff / (24 * 60 * 60 * 1000));
+        int nights = (int) TimeUnit.MILLISECONDS.toDays(diff);
         if (nights <= 0) nights = 1;
         bsNights.setText(nights > 1 ? getString(R.string.night_count_multiple, nights) : getString(R.string.night_count_single));
 
@@ -297,7 +291,7 @@ public class HotelDetailActivity extends AppCompatActivity {
                     .addOnSuccessListener(aVoid -> {
                         binding.btnFavorite.setIconResource(R.drawable.ic_favorite_border);
                         binding.btnFavorite.setIconTintResource(R.color.black);
-                        setResult(RESULT_OK); // Notify List that something changed
+                        setResult(RESULT_OK);
                         Toast.makeText(this, "Removed from favorites", Toast.LENGTH_SHORT).show();
                     });
         } else {
@@ -306,7 +300,7 @@ public class HotelDetailActivity extends AppCompatActivity {
                     .addOnSuccessListener(aVoid -> {
                         binding.btnFavorite.setIconResource(R.drawable.ic_favorite_filled);
                         binding.btnFavorite.setIconTintResource(R.color.black);
-                        setResult(RESULT_OK); // Notify List that something changed
+                        setResult(RESULT_OK);
                         Toast.makeText(this, "Added to favorites", Toast.LENGTH_SHORT).show();
                     })
                     .addOnFailureListener(e -> {
@@ -317,6 +311,61 @@ public class HotelDetailActivity extends AppCompatActivity {
                         binding.btnFavorite.setIconTintResource(R.color.black);
                     });
         }
+    }
+
+    private void showDatePicker(boolean isCheckIn) {
+        CalendarConstraints.Builder constraintsBuilder = new CalendarConstraints.Builder();
+        constraintsBuilder.setValidator(DateValidatorPointForward.now());
+
+        MaterialDatePicker<Long> picker = MaterialDatePicker.Builder.datePicker()
+                .setTitleText(isCheckIn ? "Select Check-in Date" : "Select Check-out Date")
+                .setSelection(isCheckIn ? checkInTimestamp : checkOutTimestamp)
+                .setCalendarConstraints(constraintsBuilder.build())
+                .build();
+
+        picker.addOnPositiveButtonClickListener(selection -> {
+            if (isCheckIn) {
+                checkInTimestamp = selection;
+                if (checkOutTimestamp <= checkInTimestamp) {
+                    checkOutTimestamp = checkInTimestamp + TimeUnit.DAYS.toMillis(1);
+                }
+            } else {
+                if (selection <= checkInTimestamp) {
+                    Toast.makeText(this, "Check-out must be after check-in", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                checkOutTimestamp = selection;
+            }
+            updateDisplay();
+        });
+
+        picker.show(getSupportFragmentManager(), "DATE_PICKER");
+    }
+
+    private void updateDisplay() {
+        binding.tvCheckInDate.setText(dateFormat.format(new Date(checkInTimestamp)));
+        binding.tvCheckOutDate.setText(dateFormat.format(new Date(checkOutTimestamp)));
+
+        long diff = checkOutTimestamp - checkInTimestamp;
+        int nights = (int) TimeUnit.MILLISECONDS.toDays(diff);
+        if (nights <= 0) nights = 1;
+
+        String nightsText = nights > 1 ? getString(R.string.night_count_multiple, nights) : getString(R.string.night_count_single);
+        binding.tvNightsCount.setText(nightsText + " selected");
+        binding.tvPricePerNightValue.setText(getString(R.string.dh_currency, pricePerNight));
+        binding.tvNightsSubtotalLabel.setText(nightsText);
+        
+        int subtotal = pricePerNight * nights;
+        binding.tvNightsSubtotalValue.setText(getString(R.string.dh_currency, subtotal));
+        
+        int serviceFee = 150;
+        int taxFee = 50;
+        binding.tvServiceFee.setText(getString(R.string.dh_currency, serviceFee));
+        binding.tvTaxFee.setText(getString(R.string.dh_currency, taxFee));
+        
+        currentTotalPrice = subtotal + serviceFee + taxFee;
+        binding.tvPriceDetailTotal.setText(getString(R.string.dh_currency, currentTotalPrice));
+        binding.tvTotalPriceBottom.setText(getString(R.string.dh_currency, currentTotalPrice));
     }
 
     private void performBooking() {
@@ -368,59 +417,5 @@ public class HotelDetailActivity extends AppCompatActivity {
         });
 
         dialog.show();
-    }
-
-    private void showDatePicker(boolean isCheckIn) {
-        CalendarConstraints.Builder constraintsBuilder = new CalendarConstraints.Builder();
-        constraintsBuilder.setValidator(DateValidatorPointForward.now());
-
-        MaterialDatePicker<Long> picker = MaterialDatePicker.Builder.datePicker()
-                .setTitleText(isCheckIn ? "Select Check-in Date" : "Select Check-out Date")
-                .setSelection(isCheckIn ? checkInTimestamp : checkOutTimestamp)
-                .setCalendarConstraints(constraintsBuilder.build())
-                .build();
-
-        picker.addOnPositiveButtonClickListener(selection -> {
-            if (isCheckIn) {
-                checkInTimestamp = selection;
-                if (checkOutTimestamp <= checkInTimestamp) {
-                    checkOutTimestamp = checkInTimestamp + (24 * 60 * 60 * 1000);
-                }
-            } else {
-                if (selection <= checkInTimestamp) {
-                    Toast.makeText(this, "Check-out must be after check-in", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                checkOutTimestamp = selection;
-            }
-            updateDisplay();
-        });
-
-        picker.show(getSupportFragmentManager(), "DATE_PICKER");
-    }
-
-    private void updateDisplay() {
-        binding.tvCheckInDate.setText(dateFormat.format(new Date(checkInTimestamp)));
-        binding.tvCheckOutDate.setText(dateFormat.format(new Date(checkOutTimestamp)));
-
-        long diff = checkOutTimestamp - checkInTimestamp;
-        int nights = (int) (diff / (24 * 60 * 60 * 1000));
-        if (nights <= 0) nights = 1;
-
-        binding.tvNightsCount.setText(nights > 1 ? getString(R.string.night_count_multiple, nights) : getString(R.string.night_count_single));
-        binding.tvPricePerNightValue.setText(getString(R.string.dh_currency, pricePerNight));
-        binding.tvNightsSubtotalLabel.setText(nights > 1 ? getString(R.string.night_count_multiple, nights) : getString(R.string.night_count_single));
-        
-        int subtotal = pricePerNight * nights;
-        binding.tvNightsSubtotalValue.setText(getString(R.string.dh_currency, subtotal));
-        
-        int serviceFee = 150;
-        int taxFee = 50;
-        binding.tvServiceFee.setText(getString(R.string.dh_currency, serviceFee));
-        binding.tvTaxFee.setText(getString(R.string.dh_currency, taxFee));
-        
-        currentTotalPrice = subtotal + serviceFee + taxFee;
-        binding.tvPriceDetailTotal.setText(getString(R.string.dh_currency, currentTotalPrice));
-        binding.tvTotalPriceBottom.setText(getString(R.string.dh_currency, currentTotalPrice));
     }
 }

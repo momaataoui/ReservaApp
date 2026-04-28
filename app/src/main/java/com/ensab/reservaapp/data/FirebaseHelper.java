@@ -27,10 +27,6 @@ public class FirebaseHelper {
         db.collection("hotels").get().addOnCompleteListener(callback);
     }
 
-    public void getRestaurants(OnCompleteListener<QuerySnapshot> callback) {
-        db.collection("restaurants").get().addOnCompleteListener(callback);
-    }
-
     public void insertSampleDataIfEmpty(Callback<Void> callback) {
         Log.d(TAG, "Checking if sample data needs to be inserted...");
         db.collection("hotels").limit(1).get().addOnCompleteListener(task -> {
@@ -38,14 +34,19 @@ public class FirebaseHelper {
                 if (task.getResult().isEmpty()) {
                     Log.d(TAG, "Hotels collection is empty. Inserting sample data...");
                     
-                    insertHotel("La Mamounia Marrakech", "Marrakech", "Palais légendaire au cœur de la médina.", 1450, 4.9, "https://images.unsplash.com/photo-1590073844006-33379778ae09?auto=format&fit=crop&w=800&q=80");
-                    insertHotel("Sofitel Agadir Thalassa", "Agadir", "Resort 5 étoiles face à l'océan.", 1100, 4.6, "https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80");
-                    insertHotel("Royal Mansour Casablanca", "Casablanca", "Architecture art-déco majestueuse.", 1500, 4.8, "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80");
-                    insertHotel("The View Agadir", "Agadir", "Hôtel moderne avec vue imprenable.", 950, 4.5, "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80");
-                    insertHotel("Riad Fès", "Fès", "Riad authentique du XIVe siècle.", 1200, 4.9, "https://images.unsplash.com/photo-1544124499-58912cbddaad?auto=format&fit=crop&w=800&q=80");
-
-                    insertRestaurant("Le Grand Table Marocaine", "Marrakech", "Moroccan Haute Cuisine", "$$$$", 4.8);
+                    insertHotel("La Mamounia Marrakech", "Marrakech", "Palais légendaire au cœur de la médina.", 4500, 4.9, "https://images.unsplash.com/photo-1590073844006-33379778ae09?auto=format&fit=crop&w=800&q=80");
+                    insertHotel("Sofitel Agadir Thalassa", "Agadir", "Resort 5 étoiles face à l'océan.", 2200, 4.6, "https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80");
+                    insertHotel("Royal Mansour Casablanca", "Casablanca", "Architecture art-déco majestueuse.", 3500, 4.8, "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80");
+                    insertHotel("The View Agadir", "Agadir", "Hôtel moderne avec vue imprenable.", 1800, 4.5, "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80");
+                    insertHotel("Riad Fès", "Fès", "Riad authentique du XIVe siècle.", 2800, 4.9, "https://images.unsplash.com/photo-1544124499-58912cbddaad?auto=format&fit=crop&w=800&q=80");
                     
+                    // Nouveaux hôtels
+                    insertHotel("Four Seasons Resort Marrakech", "Marrakech", "Luxe contemporain dans un jardin mauresque.", 5200, 4.9, "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80");
+                    insertHotel("Mazagan Beach Resort", "El Jadida", "Destination de rêve avec golf et casino.", 2600, 4.7, "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=800&q=80");
+                    insertHotel("Michlifen Resort & Golf", "Ifrane", "Chalet de luxe dans le Petit Suisse marocain.", 3100, 4.8, "https://images.unsplash.com/photo-1518733057094-95b53143d2a7?auto=format&fit=crop&w=800&q=80");
+                    insertHotel("Hilton Tangier Al Houara", "Tanger", "Resort balnéaire d'exception.", 2100, 4.6, "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80");
+                    insertHotel("Banyan Tree Tamouda Bay", "Tétouan", "Villas avec piscine privée au bord de la Méditerranée.", 6500, 4.9, "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?auto=format&fit=crop&w=800&q=80");
+
                     callback.onSuccess(null);
                 } else {
                     Log.d(TAG, "Hotels collection already contains data.");
@@ -70,18 +71,5 @@ public class FirebaseHelper {
         db.collection("hotels").add(hotel)
             .addOnSuccessListener(documentReference -> Log.d(TAG, "Hotel inserted: " + name))
             .addOnFailureListener(e -> Log.e(TAG, "Error inserting hotel " + name + ": " + e.getMessage()));
-    }
-
-    private void insertRestaurant(String name, String city, String cuisine, String priceRange, double rating) {
-        Map<String, Object> resto = new HashMap<>();
-        resto.put("name", name);
-        resto.put("city", city);
-        resto.put("cuisine", cuisine);
-        resto.put("price_range", priceRange);
-        resto.put("rating", rating);
-        
-        db.collection("restaurants").add(resto)
-            .addOnSuccessListener(documentReference -> Log.d(TAG, "Restaurant inserted: " + name))
-            .addOnFailureListener(e -> Log.e(TAG, "Error inserting restaurant: " + e.getMessage()));
     }
 }
