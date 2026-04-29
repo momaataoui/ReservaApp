@@ -53,4 +53,5 @@
     <string name="reviews_count">(%d reviews)</string>
     <string name="night_count_single">1 night</string>
     <string name="night_count_multiple">%d nights</string>
+    <string name="help_message">J\'ai besoin d\'aide pour utiliser l\'application.</string>
 </resources>

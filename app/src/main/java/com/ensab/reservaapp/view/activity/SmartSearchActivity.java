@@ -1,11 +1,7 @@
 package com.ensab.reservaapp.view.activity;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.EditText;
-import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -13,13 +9,13 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+
 import com.ensab.reservaapp.R;
 import com.ensab.reservaapp.databinding.ActivitySmartSearchBinding;
 import com.ensab.reservaapp.util.NavigationHelper;
 import com.ensab.reservaapp.view.adapter.ChatAdapter;
 import com.ensab.reservaapp.viewmodel.ChatViewModel;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
 import java.util.ArrayList;
 
 public class SmartSearchActivity extends AppCompatActivity {
@@ -44,7 +40,7 @@ public class SmartSearchActivity extends AppCompatActivity {
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setStackFromEnd(true);
         binding.rvChat.setLayoutManager(layoutManager);
-        
+
         adapter = new ChatAdapter(new ArrayList<>());
         binding.rvChat.setAdapter(adapter);
 
@@ -57,9 +53,9 @@ public class SmartSearchActivity extends AppCompatActivity {
             }
         });
 
-        viewModel.isLoading.observe(this, isLoading -> {
-            binding.progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
-        });
+        viewModel.isLoading.observe(this, isLoading ->
+                binding.progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE)
+        );
 
         binding.btnSend.setOnClickListener(v -> {
             String text = binding.etMessage.getText().toString().trim();
@@ -74,21 +70,21 @@ public class SmartSearchActivity extends AppCompatActivity {
 
     private void setupSuggestions() {
         if (binding.suggestionSearch != null) {
-            binding.suggestionSearch.setOnClickListener(v -> {
-                NavigationHelper.fastNavigate(this, HotelListActivity.class);
-            });
+            binding.suggestionSearch.setOnClickListener(v ->
+                    NavigationHelper.fastNavigate(this, HotelListActivity.class)
+            );
         }
 
         if (binding.suggestionBookings != null) {
-            binding.suggestionBookings.setOnClickListener(v -> {
-                NavigationHelper.fastNavigate(this, MyBookingsActivity.class);
-            });
+            binding.suggestionBookings.setOnClickListener(v ->
+                    NavigationHelper.fastNavigate(this, MyBookingsActivity.class)
+            );
         }
 
         if (binding.suggestionHelp != null) {
-            binding.suggestionHelp.setOnClickListener(v -> {
-                viewModel.sendMessage("J'ai besoin d'aide pour utiliser l'application.");
-            });
+            binding.suggestionHelp.setOnClickListener(v ->
+                    viewModel.sendMessage(getString(R.string.help_message))
+            );
         }
     }
 }

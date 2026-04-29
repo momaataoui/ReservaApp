@@ -16,7 +16,7 @@ public class GeminiService {
     private final Executor executor;
 
     public GeminiService() {
-        GenerativeModel gm = new GenerativeModel("gemini-2.5-flash", BuildConfig.GEMINI_API_KEY);
+        GenerativeModel gm = new GenerativeModel("gemini-1.5-flash", BuildConfig.GEMINI_API_KEY);
         this.model = GenerativeModelFutures.from(gm);
         this.executor = Executors.newSingleThreadExecutor();
     }
