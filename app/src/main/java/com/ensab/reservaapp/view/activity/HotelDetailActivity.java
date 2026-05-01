@@ -19,6 +19,9 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.viewpager2.widget.ViewPager2;
 
+import androidx.lifecycle.ViewModelProvider;
+import com.ensab.reservaapp.viewmodel.HotelDetailViewModel;
+import com.ensab.reservaapp.model.Hotel;
 import com.ensab.reservaapp.R;
 import com.ensab.reservaapp.databinding.ActivityHotelDetailBinding;
 import com.ensab.reservaapp.util.NavigationHelper;
@@ -30,7 +33,6 @@ import com.google.android.material.datepicker.DateValidatorPointForward;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -56,6 +58,7 @@ public class HotelDetailActivity extends AppCompatActivity {
     public static final String EXTRA_HOTEL_IMAGES   = "hotel_images";
 
     private ActivityHotelDetailBinding binding;
+    private HotelDetailViewModel viewModel;
     private String hotelId;
     private String hotelImageUrl;
     private int pricePerNight = 1200;
@@ -87,10 +90,46 @@ public class HotelDetailActivity extends AppCompatActivity {
 
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
+        viewModel = new ViewModelProvider(this).get(HotelDetailViewModel.class);
+        setupObservers();
+
         loadData();
         setupSpinners();
         setupListeners();
         updateDisplay();
+    }
+
+    private void setupObservers() {
+        viewModel.hotelDetails.observe(this, hotel -> {
+            if (hotel != null) {
+                binding.tvHotelName.setText(hotel.getName());
+                binding.tvHotelLocationDetail.setText(getString(R.string.location_morocco, hotel.getCity()));
+                pricePerNight = (int) hotel.getPrice_per_night();
+                binding.tvRating.setText(String.valueOf(hotel.getRating()));
+                if (hotel.getDescription() != null) binding.tvDescription.setText(hotel.getDescription());
+
+                setupImages(hotel.getImageUrl(), hotel.getImages());
+                updateDisplay();
+            }
+        });
+
+        viewModel.isFavorite.observe(this, isFav -> {
+            if (isFav) {
+                binding.btnFavorite.setIconResource(R.drawable.ic_favorite_filled);
+                binding.btnFavorite.setIconTintResource(R.color.black);
+            } else {
+                binding.btnFavorite.setIconResource(R.drawable.ic_favorite_border);
+                binding.btnFavorite.setIconTintResource(R.color.black);
+            }
+        });
+
+        viewModel.errorMessage.observe(this, error -> {
+            if (error != null) Toast.makeText(this, error, Toast.LENGTH_SHORT).show();
+        });
+
+        viewModel.bookingSuccess.observe(this, success -> {
+            if (success) showSuccessDialog();
+        });
     }
 
     private void setupSpinners() {
@@ -109,38 +148,11 @@ public class HotelDetailActivity extends AppCompatActivity {
         String name = i.getStringExtra(EXTRA_HOTEL_NAME);
         
         if (name == null && hotelId != null) {
-            fetchHotelDetails(hotelId);
+            viewModel.initHotel(hotelId);
         } else {
             displayHotelData(i);
+            if (hotelId != null) viewModel.initHotel(hotelId);
         }
-
-        checkIfFavorite();
-    }
-
-    private void fetchHotelDetails(String id) {
-        FirebaseFirestore.getInstance().collection("hotels").document(id)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        String name = documentSnapshot.getString("name");
-                        String city = documentSnapshot.getString("city");
-                        Double price = documentSnapshot.getDouble("price_per_night");
-                        Double rating = documentSnapshot.getDouble("rating");
-                        String description = documentSnapshot.getString("description");
-                        String mainImage = documentSnapshot.getString("imageUrl");
-                        List<String> others = (List<String>) documentSnapshot.get("images");
-
-                        binding.tvHotelName.setText(name);
-                        binding.tvHotelLocationDetail.setText(getString(R.string.location_morocco, city));
-                        pricePerNight = price != null ? price.intValue() : 1200;
-                        binding.tvRating.setText(String.valueOf(rating != null ? rating : 4.92f));
-                        if (description != null) binding.tvDescription.setText(description);
-
-                        setupImages(mainImage, others);
-                        updateDisplay();
-                    }
-                })
-                .addOnFailureListener(e -> Toast.makeText(this, "Error loading hotel details", Toast.LENGTH_SHORT).show());
     }
 
     private void displayHotelData(Intent i) {
@@ -257,60 +269,13 @@ public class HotelDetailActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    private void checkIfFavorite() {
-        String userId = FirebaseAuth.getInstance().getUid();
-        if (userId == null || hotelId == null) return;
-
-        FirebaseFirestore.getInstance().collection("users").document(userId)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        List<String> favorites = (List<String>) documentSnapshot.get("favorites");
-                        if (favorites != null && favorites.contains(hotelId)) {
-                            binding.btnFavorite.setIconResource(R.drawable.ic_favorite_filled);
-                            binding.btnFavorite.setIconTintResource(R.color.black);
-                        }
-                    }
-                });
-    }
-
     private void toggleFavorite() {
-        String userId = FirebaseAuth.getInstance().getUid();
-        if (userId == null) {
+        if (FirebaseAuth.getInstance().getUid() == null) {
             Toast.makeText(this, "Please log in to add to favorites", Toast.LENGTH_SHORT).show();
             return;
         }
-
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        boolean isCurrentlyFavorite = binding.btnFavorite.getIcon().getConstantState().equals(
-                ContextCompat.getDrawable(this, R.drawable.ic_favorite_filled).getConstantState());
-
-        if (isCurrentlyFavorite) {
-            db.collection("users").document(userId)
-                    .update("favorites", com.google.firebase.firestore.FieldValue.arrayRemove(hotelId))
-                    .addOnSuccessListener(aVoid -> {
-                        binding.btnFavorite.setIconResource(R.drawable.ic_favorite_border);
-                        binding.btnFavorite.setIconTintResource(R.color.black);
-                        setResult(RESULT_OK);
-                        Toast.makeText(this, "Removed from favorites", Toast.LENGTH_SHORT).show();
-                    });
-        } else {
-            db.collection("users").document(userId)
-                    .update("favorites", com.google.firebase.firestore.FieldValue.arrayUnion(hotelId))
-                    .addOnSuccessListener(aVoid -> {
-                        binding.btnFavorite.setIconResource(R.drawable.ic_favorite_filled);
-                        binding.btnFavorite.setIconTintResource(R.color.black);
-                        setResult(RESULT_OK);
-                        Toast.makeText(this, "Added to favorites", Toast.LENGTH_SHORT).show();
-                    })
-                    .addOnFailureListener(e -> {
-                        Map<String, Object> data = new HashMap<>();
-                        data.put("favorites", Arrays.asList(hotelId));
-                        db.collection("users").document(userId).set(data, com.google.firebase.firestore.SetOptions.merge());
-                        binding.btnFavorite.setIconResource(R.drawable.ic_favorite_filled);
-                        binding.btnFavorite.setIconTintResource(R.color.black);
-                    });
-        }
+        viewModel.toggleFavorite();
+        setResult(RESULT_OK); // To notify previous activity if needed
     }
 
     private void showDatePicker(boolean isCheckIn) {
@@ -388,12 +353,7 @@ public class HotelDetailActivity extends AppCompatActivity {
         booking.put("adults", adults);
         booking.put("children", kids);
 
-        FirebaseFirestore.getInstance().collection("bookings")
-                .add(booking)
-                .addOnSuccessListener(documentReference -> {
-                    showSuccessDialog();
-                })
-                .addOnFailureListener(e -> Toast.makeText(this, "Error during booking", Toast.LENGTH_SHORT).show());
+        viewModel.performBooking(booking);
     }
 
     private void showSuccessDialog() {

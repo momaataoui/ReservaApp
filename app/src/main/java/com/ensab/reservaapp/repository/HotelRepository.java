@@ -98,6 +98,30 @@ public class HotelRepository {
                 .addOnFailureListener(callback::onError);
     }
 
+    public void getHotelById(String id, java.util.function.Consumer<Hotel> onSuccess, java.util.function.Consumer<Exception> onError) {
+        db.collection("hotels").document(id)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        Hotel hotel = documentSnapshot.toObject(Hotel.class);
+                        if (hotel != null) {
+                            hotel.setId(documentSnapshot.getId());
+                            if (documentSnapshot.contains("price_per_night")) {
+                                hotel.setPrice_per_night(documentSnapshot.getDouble("price_per_night"));
+                            } else if (documentSnapshot.contains("price")) {
+                                hotel.setPrice_per_night(documentSnapshot.getDouble("price"));
+                            }
+                            onSuccess.accept(hotel);
+                        } else {
+                            onError.accept(new Exception("Failed to parse hotel"));
+                        }
+                    } else {
+                        onError.accept(new Exception("Hotel not found"));
+                    }
+                })
+                .addOnFailureListener(onError::accept);
+    }
+
     public void getFavorites(FavoritesCallback callback) {
         if (auth.getCurrentUser() == null) {
             callback.onCallback(new ArrayList<>());
@@ -138,5 +162,12 @@ public class HotelRepository {
                                 .addOnFailureListener(onError::accept);
                     });
         }
+    }
+
+    public void performBooking(java.util.Map<String, Object> bookingData, Runnable onSuccess, java.util.function.Consumer<Exception> onError) {
+        db.collection("bookings")
+                .add(bookingData)
+                .addOnSuccessListener(documentReference -> onSuccess.run())
+                .addOnFailureListener(onError::accept);
     }
 }

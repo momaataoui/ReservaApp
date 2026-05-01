@@ -30,6 +30,7 @@ public class HotelListViewModel extends ViewModel {
     private final MutableLiveData<List<String>> _favoriteIds = new MutableLiveData<>(new ArrayList<>());
     public LiveData<List<String>> favoriteIds = _favoriteIds;
 
+
     public HotelListViewModel() {
         loadUserName();
         loadHotels();
@@ -193,4 +194,6 @@ public class HotelListViewModel extends ViewModel {
         isRatingDescending = !isRatingDescending;
         _filteredHotels.setValue(sorted);
     }
+
+
 }

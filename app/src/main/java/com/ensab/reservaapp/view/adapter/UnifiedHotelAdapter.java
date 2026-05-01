@@ -95,6 +95,7 @@ public class UnifiedHotelAdapter extends ListAdapter<Hotel, UnifiedHotelAdapter.
             if (hotel.getImages() != null && !hotel.getImages().isEmpty()) {
                 intent.putExtra(HotelDetailActivity.EXTRA_HOTEL_IMAGES, hotel.getImages().toArray(new String[0]));
             }
+
             context.startActivity(intent);
         });
     }

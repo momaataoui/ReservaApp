@@ -25,6 +25,7 @@ import com.ensab.reservaapp.databinding.ActivityHotelListBinding;
 import com.ensab.reservaapp.view.adapter.UnifiedHotelAdapter;
 import com.ensab.reservaapp.viewmodel.HotelListViewModel;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.datepicker.MaterialDatePicker;
 import java.util.ArrayList;
 
 public class HotelListActivity extends AppCompatActivity {
@@ -80,6 +81,7 @@ public class HotelListActivity extends AppCompatActivity {
             binding.progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
         });
 
+
         binding.tvViewAllHotels.setOnClickListener(v -> {
             if (binding.rvHotels.getVisibility() == View.GONE) {
                 binding.rvHotels.setVisibility(View.VISIBLE);
@@ -99,6 +101,7 @@ public class HotelListActivity extends AppCompatActivity {
         NavigationHelper.setSelectedItem(this, R.id.navDiscover);
         setupBottomNavLinks();
     }
+
 
     private void setupSearch() {
         binding.cvSearchBar.setOnClickListener(v -> showSearchBottomSheet());
@@ -143,10 +146,12 @@ public class HotelListActivity extends AppCompatActivity {
             viewModel.filterHotels("");
         });
         
+
         binding.chipLuxe.setOnClickListener(v -> viewModel.filterLuxe());
         binding.chipPrice.setOnClickListener(v -> viewModel.sortByPrice());
         binding.chipRating.setOnClickListener(v -> viewModel.sortByRating());
     }
+
 
     private void setupNotifications() {
         binding.btnNotifications.setOnClickListener(v -> {
