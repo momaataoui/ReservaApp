@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-p/**
+/**
  * HotelListViewModel orchestre l'affichage de la liste des hôtels pour le client.
  * Il gère le chargement depuis Firestore, le filtrage par recherche,
  * le tri par prix/note et la gestion des favoris.
@@ -231,5 +231,4 @@ public class HotelListViewModel extends ViewModel {
         isRatingDescending = !isRatingDescending;
         _filteredHotels.setValue(sorted);
     }
-}
 }
