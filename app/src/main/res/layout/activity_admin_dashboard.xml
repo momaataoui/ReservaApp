@@ -42,7 +42,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Tableau de bord"
+                        android:text="Dashboard"
                         android:textSize="22sp"
                         android:textStyle="bold"
                         android:textColor="@color/black"/>
@@ -50,7 +50,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Bienvenue, Admin"
+                        android:text="Welcome, Admin"
                         android:textSize="14sp"
                         android:textColor="@color/secondary_text"/>
                 </LinearLayout>
@@ -135,7 +135,7 @@
                         android:layout_height="wrap_content"
                         android:layout_toEndOf="@id/icOverview"
                         android:layout_marginStart="16dp"
-                        android:text="Vue d'ensemble"
+                        android:text="Overview"
                         android:textSize="18sp"
                         android:textStyle="bold"
                         android:textColor="@color/black"/>
@@ -147,7 +147,7 @@
                         android:layout_toEndOf="@id/icOverview"
                         android:layout_marginStart="16dp"
                         android:layout_marginTop="4dp"
-                        android:text="Gérez votre plateforme\nfacilement et efficacement."
+                        android:text="Manage your platform\neasily and efficiently."
                         android:textSize="14sp"
                         android:textColor="@color/secondary_text"/>
                 </RelativeLayout>
@@ -157,7 +157,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="Statistiques rapides"
+                android:text="Quick Statistics"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:textColor="@color/black"/>
@@ -213,7 +213,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Réservations"
+                            android:text="Bookings"
                             android:textSize="13sp"
                             android:textColor="@color/secondary_text"/>
                     </LinearLayout>
@@ -263,7 +263,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Revenus totaux"
+                            android:text="Total Revenue"
                             android:textSize="13sp"
                             android:textColor="@color/secondary_text"/>
                     </LinearLayout>
@@ -274,7 +274,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="Gestion"
+                android:text="Management"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:textColor="@color/black"/>
@@ -321,7 +321,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Gérer les hôtels"
+                            android:text="Manage Hotels"
                             android:textSize="16sp"
                             android:textStyle="bold"
                             android:textColor="@color/black"/>
@@ -329,7 +329,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Ajouter, modifier ou supprimer des hôtels"
+                            android:text="Add, edit, or delete hotels"
                             android:textSize="12sp"
                             android:textColor="@color/secondary_text"/>
                     </LinearLayout>
@@ -384,7 +384,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Gérer les réservations"
+                            android:text="Manage Bookings"
                             android:textSize="16sp"
                             android:textStyle="bold"
                             android:textColor="@color/black"/>
@@ -392,7 +392,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Voir et mettre à jour toutes les réservations"
+                            android:text="View and update all bookings"
                             android:textSize="12sp"
                             android:textColor="@color/secondary_text"/>
                     </LinearLayout>
@@ -447,7 +447,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Gérer les utilisateurs"
+                            android:text="Manage Users"
                             android:textSize="16sp"
                             android:textStyle="bold"
                             android:textColor="@color/black"/>
@@ -455,7 +455,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Gérer les comptes et les rôles"
+                            android:text="Manage accounts and roles"
                             android:textSize="12sp"
                             android:textColor="@color/secondary_text"/>
                     </LinearLayout>
@@ -510,7 +510,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Accéder à l'application"
+                            android:text="Access App"
                             android:textSize="16sp"
                             android:textStyle="bold"
                             android:textColor="@color/black"/>
@@ -518,7 +518,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Explorer l'application en tant que client"
+                            android:text="Explore the app as a customer"
                             android:textSize="12sp"
                             android:textColor="@color/secondary_text"/>
                     </LinearLayout>
@@ -573,7 +573,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Plateforme sécurisée"
+                            android:text="Secure Platform"
                             android:textSize="15sp"
                             android:textStyle="bold"
                             android:textColor="@color/black"/>
@@ -581,7 +581,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Vos données sont protégées et sauvegardées"
+                            android:text="Your data is protected and backed up"
                             android:textSize="11sp"
                             android:textColor="@color/secondary_text"/>
                     </LinearLayout>
@@ -608,7 +608,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="8dp"
-                                android:text="En ligne"
+                                android:text="Online"
                                 android:textSize="12sp"
                                 android:textColor="@color/black"
                                 android:textStyle="bold"/>

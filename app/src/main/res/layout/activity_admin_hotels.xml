@@ -17,7 +17,7 @@
             android:layout_height="?attr/actionBarSize"
             app:navigationIcon="@drawable/ic_arrow_back"
             app:navigationIconTint="@color/black"
-            app:title="Gestion des hôtels"
+            app:title="Manage Hotels"
             app:titleTextColor="@color/black"
             app:titleTextAppearance="@style/TextAppearance.Material3.TitleLarge" />
     </com.google.android.material.appbar.AppBarLayout>

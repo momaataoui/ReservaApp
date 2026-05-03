@@ -96,8 +96,8 @@ public class AdminReservationsActivity extends AppCompatActivity {
      */
     private void updateStatus(Booking booking, String status) {
         adminRepository.updateBookingStatus(booking.getId(), status, () -> {
-            Toast.makeText(this, "Statut mis à jour : " + status, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Status updated: " + status, Toast.LENGTH_SHORT).show();
             loadBookings(); // Rafraîchissement
-        }, e -> Toast.makeText(this, "Erreur : " + e.getMessage(), Toast.LENGTH_SHORT).show());
+        }, e -> Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 }

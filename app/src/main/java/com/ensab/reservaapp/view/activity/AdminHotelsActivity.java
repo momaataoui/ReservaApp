@@ -105,8 +105,8 @@ public class AdminHotelsActivity extends AppCompatActivity {
      */
     private void deleteHotel(Hotel hotel) {
         hotelRepository.deleteHotel(hotel.getId(), () -> {
-            Toast.makeText(this, "Hôtel supprimé", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Hotel deleted", Toast.LENGTH_SHORT).show();
             loadHotels(); // Recharger la liste après suppression
-        }, e -> Toast.makeText(this, "Erreur : " + e.getMessage(), Toast.LENGTH_SHORT).show());
+        }, e -> Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 }

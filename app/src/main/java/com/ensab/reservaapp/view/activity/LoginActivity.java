@@ -208,28 +208,28 @@ public class LoginActivity extends AppCompatActivity {
      * Client -> ChoiceActivity
      */
     private void checkUserRoleAndRedirect(FirebaseUser user) {
-        // Optionnel : Forcer la vérification de l'email
-        /*
-        if (!user.isEmailVerified()) {
-            Toast.makeText(this, "Please verify your email first.", Toast.LENGTH_LONG).show();
-            mAuth.signOut();
-            return;
-        }
-        */
+        // S'assurer que les données de test existent avant de rediriger
+        new com.ensab.reservaapp.data.FirebaseHelper().insertSampleDataIfEmpty(new com.ensab.reservaapp.data.FirebaseHelper.Callback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                db.collection("users").document(user.getUid()).get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        String role = documentSnapshot.getString("role");
+                        if ("admin".equalsIgnoreCase(role)) {
+                            NavigationHelper.fastNavigate(LoginActivity.this, AdminDashboardActivity.class, true);
+                        } else {
+                            NavigationHelper.fastNavigate(LoginActivity.this, ChoiceActivity.class, true);
+                        }
+                    })
+                    .addOnFailureListener(e -> NavigationHelper.fastNavigate(LoginActivity.this, ChoiceActivity.class, true));
+            }
 
-        db.collection("users").document(user.getUid()).get()
-            .addOnSuccessListener(documentSnapshot -> {
-                String role = documentSnapshot.getString("role");
-                if ("admin".equalsIgnoreCase(role)) {
-                    NavigationHelper.fastNavigate(this, AdminDashboardActivity.class, true);
-                } else {
-                    NavigationHelper.fastNavigate(this, ChoiceActivity.class, true);
-                }
-            })
-            .addOnFailureListener(e -> {
-                // Par défaut, on redirige vers l'accueil client en cas d'erreur
-                NavigationHelper.fastNavigate(this, ChoiceActivity.class, true);
-            });
+            @Override
+            public void onFailure(String error) {
+                // Même en cas d'échec d'insertion, on tente la redirection
+                NavigationHelper.fastNavigate(LoginActivity.this, ChoiceActivity.class, true);
+            }
+        });
     }
 
     /**

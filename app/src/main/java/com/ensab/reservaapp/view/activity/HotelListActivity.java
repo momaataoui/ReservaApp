@@ -134,6 +134,10 @@ public class HotelListActivity extends AppCompatActivity {
         sheetView.findViewById(R.id.destMarrakesh).setOnClickListener(v -> updateSearch("Marrakech", bottomSheetDialog));
         sheetView.findViewById(R.id.destRabat).setOnClickListener(v -> updateSearch("Rabat", bottomSheetDialog));
         sheetView.findViewById(R.id.destTangier).setOnClickListener(v -> updateSearch("Tanger", bottomSheetDialog));
+        sheetView.findViewById(R.id.destAgadir).setOnClickListener(v -> updateSearch("Agadir", bottomSheetDialog));
+        sheetView.findViewById(R.id.destFes).setOnClickListener(v -> updateSearch("Fès", bottomSheetDialog));
+        sheetView.findViewById(R.id.destDakhla).setOnClickListener(v -> updateSearch("Dakhla", bottomSheetDialog));
+        sheetView.findViewById(R.id.destChefchaouen).setOnClickListener(v -> updateSearch("Chefchaouen", bottomSheetDialog));
 
         // Recherche textuelle dynamique
         etSheetSearch.addTextChangedListener(new TextWatcher() {
@@ -141,8 +145,9 @@ public class HotelListActivity extends AppCompatActivity {
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                viewModel.filterHotels(s.toString());
-                binding.tvSearch.setText(s.length() > 0 ? s.toString() : "Start your search");
+                String query = s.toString();
+                viewModel.filterHotels(query);
+                binding.tvSearch.setText(query.isEmpty() ? "Start your search" : query);
             }
             @Override
             public void afterTextChanged(Editable s) {}
@@ -153,7 +158,7 @@ public class HotelListActivity extends AppCompatActivity {
 
     private void updateSearch(String query, BottomSheetDialog dialog) {
         binding.tvSearch.setText(query);
-        viewModel.filterHotels(query);
+        viewModel.filterByCity(query);
         dialog.dismiss();
     }
 
@@ -163,7 +168,7 @@ public class HotelListActivity extends AppCompatActivity {
     private void setupFilters() {
         binding.chipAll.setOnClickListener(v -> {
             binding.tvSearch.setText("Start your search");
-            viewModel.filterHotels("");
+            viewModel.resetFilters();
         });
         
         binding.chipLuxe.setOnClickListener(v -> viewModel.filterLuxe());

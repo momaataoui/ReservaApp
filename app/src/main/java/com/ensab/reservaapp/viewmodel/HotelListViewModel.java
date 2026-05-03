@@ -170,6 +170,7 @@ public class HotelListViewModel extends ViewModel {
      * Filtre la liste des hôtels en fonction de la saisie utilisateur (Nom ou Ville).
      */
     public void filterHotels(String query) {
+        if (query == null) return;
         String lowerQuery = query.toLowerCase().trim();
         List<Hotel> all = _allHotels.getValue();
         if (all == null) return;
@@ -178,11 +179,24 @@ public class HotelListViewModel extends ViewModel {
             _filteredHotels.setValue(all);
         } else {
             List<Hotel> filtered = all.stream()
-                .filter(h -> h.getName().toLowerCase().contains(lowerQuery) || 
-                            h.getCity().toLowerCase().contains(lowerQuery))
+                .filter(h -> (h.getName() != null && h.getName().toLowerCase().contains(lowerQuery)) || 
+                            (h.getCity() != null && h.getCity().toLowerCase().contains(lowerQuery)))
                 .collect(Collectors.toList());
             _filteredHotels.setValue(filtered);
         }
+    }
+
+    /**
+     * Filtre par ville spécifique (utilisé pour les suggestions).
+     */
+    public void filterByCity(String city) {
+        List<Hotel> all = _allHotels.getValue();
+        if (all == null || city == null) return;
+        
+        List<Hotel> filtered = all.stream()
+            .filter(h -> city.equalsIgnoreCase(h.getCity()))
+            .collect(Collectors.toList());
+        _filteredHotels.setValue(filtered);
     }
 
     /**
@@ -192,9 +206,16 @@ public class HotelListViewModel extends ViewModel {
         List<Hotel> all = _allHotels.getValue();
         if (all != null) {
             _filteredHotels.setValue(all.stream()
-                .filter(h -> h.getPrice_per_night() >= 1300)
+                .filter(h -> h.getPrice_per_night() >= 3000 || h.getRating() >= 4.8)
                 .collect(Collectors.toList()));
         }
+    }
+
+    /**
+     * Réinitialise tous les filtres.
+     */
+    public void resetFilters() {
+        _filteredHotels.setValue(_allHotels.getValue());
     }
 
     private boolean isPriceAscending = true;

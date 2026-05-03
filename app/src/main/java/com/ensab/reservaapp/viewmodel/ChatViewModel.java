@@ -36,7 +36,7 @@ public class ChatViewModel extends ViewModel {
      * Ajoute le message de bienvenue initial de l'assistant.
      */
     private void addInitialMessage() {
-        addMessage("Bonjour ! Je suis votre assistant Smart Reserva. Comment puis-je vous aider aujourd'hui ?", false);
+        addMessage("Hello! I'm your Smart Reserva assistant. How can I help you today?", false);
     }
 
     /**
@@ -55,21 +55,21 @@ public class ChatViewModel extends ViewModel {
             public void onCallback(List<Hotel> hotels) {
                 StringBuilder hotelData = new StringBuilder();
                 for (Hotel hotel : hotels) {
-                    hotelData.append("- Nom: ").append(hotel.getName())
-                            .append(", Ville: ").append(hotel.getCity())
-                            .append(", Prix: ").append(hotel.getPrice_per_night())
+                    hotelData.append("- Name: ").append(hotel.getName())
+                            .append(", City: ").append(hotel.getCity())
+                            .append(", Price: ").append(hotel.getPrice_per_night())
                             .append(", ID: ").append(hotel.getId()).append("\n");
                 }
 
                 // Construction du prompt avec instructions strictes
-                String prompt = "Tu es Smart Reserva AI, un assistant hôtelier utile. " +
-                        "Voici notre base de données d'hôtels :\n" + hotelData.toString() +
-                        "\nMessage de l'utilisateur : " + query +
-                        "\nInstructions : " +
-                        "1. Si l'utilisateur dit bonjour, demande comment vous allez ou dit merci, réponds poliment sans recommander d'hôtel. " +
-                        "2. Si l'utilisateur cherche un hôtel, recommande le meilleur match de la base de données. " +
-                        "3. Uniquement si tu recommandes un hôtel, termine ton message par [HOTEL_ID:id_ici]. " +
-                        "4. Sois amical et bref.";
+                String prompt = "You are Smart Reserva AI, a helpful hotel booking assistant. " +
+                        "Here is our hotel database:\n" + hotelData.toString() +
+                        "\nUser Message: " + query +
+                        "\nInstructions: " +
+                        "1. If the user says hello, asks how you are, or says thanks, reply politely without recommending a hotel. " +
+                        "2. If the user is looking for a hotel, recommend the best match from the database. " +
+                        "3. Only if you recommend a hotel, end your message with [HOTEL_ID:id_here]. " +
+                        "4. Be friendly and brief.";
 
                 geminiService.askGemini(prompt, new GeminiService.ChatCallback() {
                     @Override
@@ -80,15 +80,17 @@ public class ChatViewModel extends ViewModel {
 
                     @Override
                     public void onError(Throwable t) {
-                        android.util.Log.e("ChatViewModel", "Erreur Gemini: " + t.getMessage(), t);
+                        android.util.Log.e("ChatViewModel", "Gemini Error: " + t.getMessage(), t);
                         
-                        String userMessage = "Désolé, j'ai rencontré une erreur technique. Réessayez.";
+                        String userMessage = "Sorry, I encountered a technical error. Please try again.";
                         
-                        // Gestion des quotas et de la sécurité Google
+                        // Gestion des quotas et de la disponibilité Google
                         if (t.getMessage() != null && t.getMessage().contains("429")) {
-                            userMessage = "Limite de requêtes atteinte (Quota Google). Veuillez patienter une minute.";
+                            userMessage = "Request limit reached (Google Quota). Please wait a minute.";
+                        } else if (t.getMessage() != null && (t.getMessage().contains("503") || t.getMessage().contains("UNAVAILABLE"))) {
+                            userMessage = "The AI server is currently busy due to high demand. Please try again in a few seconds.";
                         } else if (t.getMessage() != null && t.getMessage().contains("Safety")) {
-                            userMessage = "Désolé, je ne peux pas répondre à cette question pour des raisons de sécurité.";
+                            userMessage = "Sorry, I cannot answer this question for safety reasons.";
                         }
 
                         addMessage(userMessage, false);
@@ -99,7 +101,7 @@ public class ChatViewModel extends ViewModel {
 
             @Override
             public void onError(Exception e) {
-                addMessage("Erreur de base de données. Réessayez.", false);
+                addMessage("Database error. Please try again.", false);
                 _isLoading.postValue(false);
             }
         });

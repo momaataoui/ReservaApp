@@ -86,8 +86,8 @@ public class AdminUsersActivity extends AppCompatActivity {
      */
     private void updateUserRole(User user, String newRole) {
         adminRepository.updateUserRole(user.getId(), newRole, () -> {
-            Toast.makeText(this, "Rôle mis à jour : " + newRole, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Role updated: " + newRole, Toast.LENGTH_SHORT).show();
             loadUsers(); // Rafraîchissement après modification
-        }, e -> Toast.makeText(this, "Erreur : " + e.getMessage(), Toast.LENGTH_SHORT).show());
+        }, e -> Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 }

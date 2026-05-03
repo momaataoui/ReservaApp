@@ -66,15 +66,15 @@ public class GeminiService {
                     if (text != null && !text.isEmpty()) {
                         callback.onResponse(text);
                     } else {
-                        callback.onResponse("Désolé, je n'ai pas pu générer de réponse. Réessayez.");
+                        callback.onResponse("I'm sorry, I couldn't generate a response. Please try again.");
                     }
                 } catch (Exception e) {
-                    Log.e("GeminiService", "Erreur de réponse: " + e.getMessage());
+                    Log.e("GeminiService", "Response error: " + e.getMessage());
                     callback.onError(e);
                 }
             }, executor);
         } catch (Exception e) {
-            Log.e("GeminiService", "Erreur d'appel: " + e.getMessage());
+            Log.e("GeminiService", "Call error: " + e.getMessage());
             callback.onError(e);
         }
     }

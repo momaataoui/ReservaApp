@@ -1,265 +1,261 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/bottom_sheet_rounded"
-    android:orientation="vertical"
-    android:padding="24dp">
+    android:background="@drawable/bottom_sheet_rounded">
 
-    <View
-        android:layout_width="40dp"
-        android:layout_height="4dp"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="24dp"
-        android:background="#E0E0E0" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Where?"
-        android:textColor="@color/black"
-        android:textSize="28sp"
-        android:textStyle="bold"
-        android:fontFamily="serif" />
-
-    <!-- Search Bar in Bottom Sheet -->
-    <com.google.android.material.card.MaterialCardView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_marginTop="24dp"
-        app:cardCornerRadius="28dp"
-        app:cardElevation="2dp"
-        app:cardBackgroundColor="@color/white">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
 
-        <LinearLayout
+        <View
+            android:layout_width="40dp"
+            android:layout_height="4dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="24dp"
+            android:background="#E0E0E0" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="serif"
+            android:text="Where?"
+            android:textColor="@color/black"
+            android:textSize="28sp"
+            android:textStyle="bold" />
+
+        <!-- Search Bar in Bottom Sheet -->
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical"
-            android:paddingHorizontal="16dp">
+            android:layout_height="56dp"
+            android:layout_marginTop="24dp"
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="28dp"
+            app:cardElevation="2dp">
 
-            <ImageView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:src="@drawable/ic_search"
-                app:tint="#666666" />
-
-            <EditText
-                android:id="@+id/etSheetSearch"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_marginStart="12dp"
-                android:background="@android:color/transparent"
-                android:hint="Search destination"
-                android:inputType="text"
-                android:textSize="16sp" />
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
+                android:gravity="center_vertical"
+                android:paddingHorizontal="16dp">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="Suggested destinations"
-        android:textColor="#666666"
-        android:textSize="14sp"
-        android:textStyle="bold" />
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_search"
+                    app:tint="#666666" />
 
-    <!-- Casablanca -->
-    <LinearLayout
-        android:id="@+id/destCasablanca"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:gravity="center_vertical"
-        android:clickable="true"
-        android:focusable="true"
-        android:background="?attr/selectableItemBackground"
-        android:paddingVertical="8dp">
-
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            app:cardCornerRadius="12dp"
-            app:cardBackgroundColor="#F8F4F0"
-            app:cardElevation="0dp">
-            <ImageView
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_gravity="center"
-                android:src="@drawable/ic_location"
-                app:tint="#B8860B" />
+                <EditText
+                    android:id="@+id/etSheetSearch"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="12dp"
+                    android:background="@android:color/transparent"
+                    android:hint="Search destination"
+                    android:inputType="text"
+                    android:textSize="16sp" />
+            </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <LinearLayout
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:orientation="vertical">
+            android:layout_marginTop="24dp"
+            android:text="Suggested destinations"
+            android:textColor="#666666"
+            android:textSize="14sp"
+            android:textStyle="bold" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Casablanca, Casablanca-Settat"
-                android:textColor="@color/black"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Because your wishlist has stays in Casablanca"
-                android:textColor="#888888"
-                android:textSize="13sp" />
-        </LinearLayout>
-    </LinearLayout>
-
-    <!-- Marrakesh -->
-    <LinearLayout
-        android:id="@+id/destMarrakesh"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:gravity="center_vertical"
-        android:clickable="true"
-        android:focusable="true"
-        android:background="?attr/selectableItemBackground"
-        android:paddingVertical="8dp">
-
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            app:cardCornerRadius="12dp"
-            app:cardBackgroundColor="#F0F4F8"
-            app:cardElevation="0dp">
-            <ImageView
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_gravity="center"
-                android:src="@drawable/ic_location"
-                app:tint="#1B4F72" />
-        </com.google.android.material.card.MaterialCardView>
-
+        <!-- Destinations Container -->
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
             android:orientation="vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Marrakesh, Marrakech-Safi"
-                android:textColor="@color/black"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+            <!-- Casablanca -->
+            <LinearLayout
+                android:id="@+id/destCasablanca"
+                style="@style/DestinationItemStyle">
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/DestinationIconCardStyle"
+                    app:cardBackgroundColor="#F8F4F0">
+                    <ImageView
+                        style="@style/DestinationIconStyle"
+                        android:src="@drawable/ic_location"
+                        app:tint="#B8860B" />
+                </com.google.android.material.card.MaterialCardView>
+                <LinearLayout style="@style/DestinationTextStyle">
+                    <TextView
+                        style="@style/DestinationTitleStyle"
+                        android:text="Casablanca" />
+                    <TextView
+                        style="@style/DestinationSubTitleStyle"
+                        android:text="The economic heart of Morocco" />
+                </LinearLayout>
+            </LinearLayout>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="For sights like Jardin Majorelle"
-                android:textColor="#888888"
-                android:textSize="13sp" />
+            <!-- Marrakesh -->
+            <LinearLayout
+                android:id="@+id/destMarrakesh"
+                style="@style/DestinationItemStyle">
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/DestinationIconCardStyle"
+                    app:cardBackgroundColor="#F0F4F8">
+                    <ImageView
+                        style="@style/DestinationIconStyle"
+                        android:src="@drawable/ic_location"
+                        app:tint="#1B4F72" />
+                </com.google.android.material.card.MaterialCardView>
+                <LinearLayout style="@style/DestinationTextStyle">
+                    <TextView
+                        style="@style/DestinationTitleStyle"
+                        android:text="Marrakech" />
+                    <TextView
+                        style="@style/DestinationSubTitleStyle"
+                        android:text="The Red City and its famous Medina" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Agadir -->
+            <LinearLayout
+                android:id="@+id/destAgadir"
+                style="@style/DestinationItemStyle">
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/DestinationIconCardStyle"
+                    app:cardBackgroundColor="#E8F5E9">
+                    <ImageView
+                        style="@style/DestinationIconStyle"
+                        android:src="@drawable/ic_location"
+                        app:tint="#2E7D32" />
+                </com.google.android.material.card.MaterialCardView>
+                <LinearLayout style="@style/DestinationTextStyle">
+                    <TextView
+                        style="@style/DestinationTitleStyle"
+                        android:text="Agadir" />
+                    <TextView
+                        style="@style/DestinationSubTitleStyle"
+                        android:text="Sun and beaches all year round" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Tangier -->
+            <LinearLayout
+                android:id="@+id/destTangier"
+                style="@style/DestinationItemStyle">
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/DestinationIconCardStyle"
+                    app:cardBackgroundColor="#F0F4F8">
+                    <ImageView
+                        style="@style/DestinationIconStyle"
+                        android:src="@drawable/ic_location"
+                        app:tint="#1B4F72" />
+                </com.google.android.material.card.MaterialCardView>
+                <LinearLayout style="@style/DestinationTextStyle">
+                    <TextView
+                        style="@style/DestinationTitleStyle"
+                        android:text="Tangier" />
+                    <TextView
+                        style="@style/DestinationSubTitleStyle"
+                        android:text="Where the Mediterranean meets the Atlantic" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Fes -->
+            <LinearLayout
+                android:id="@+id/destFes"
+                style="@style/DestinationItemStyle">
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/DestinationIconCardStyle"
+                    app:cardBackgroundColor="#FFF3E0">
+                    <ImageView
+                        style="@style/DestinationIconStyle"
+                        android:src="@drawable/ic_location"
+                        app:tint="#E65100" />
+                </com.google.android.material.card.MaterialCardView>
+                <LinearLayout style="@style/DestinationTextStyle">
+                    <TextView
+                        style="@style/DestinationTitleStyle"
+                        android:text="Fès" />
+                    <TextView
+                        style="@style/DestinationSubTitleStyle"
+                        android:text="The spiritual and cultural capital" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Dakhla -->
+            <LinearLayout
+                android:id="@+id/destDakhla"
+                style="@style/DestinationItemStyle">
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/DestinationIconCardStyle"
+                    app:cardBackgroundColor="#E1F5FE">
+                    <ImageView
+                        style="@style/DestinationIconStyle"
+                        android:src="@drawable/ic_location"
+                        app:tint="#0277BD" />
+                </com.google.android.material.card.MaterialCardView>
+                <LinearLayout style="@style/DestinationTextStyle">
+                    <TextView
+                        style="@style/DestinationTitleStyle"
+                        android:text="Dakhla" />
+                    <TextView
+                        style="@style/DestinationSubTitleStyle"
+                        android:text="Kitesurf paradise between desert and sea" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Chefchaouen -->
+            <LinearLayout
+                android:id="@+id/destChefchaouen"
+                style="@style/DestinationItemStyle">
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/DestinationIconCardStyle"
+                    app:cardBackgroundColor="#E3F2FD">
+                    <ImageView
+                        style="@style/DestinationIconStyle"
+                        android:src="@drawable/ic_location"
+                        app:tint="#1976D2" />
+                </com.google.android.material.card.MaterialCardView>
+                <LinearLayout style="@style/DestinationTextStyle">
+                    <TextView
+                        style="@style/DestinationTitleStyle"
+                        android:text="Chefchaouen" />
+                    <TextView
+                        style="@style/DestinationSubTitleStyle"
+                        android:text="Explore the magical Blue City" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Rabat -->
+            <LinearLayout
+                android:id="@+id/destRabat"
+                style="@style/DestinationItemStyle">
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/DestinationIconCardStyle"
+                    app:cardBackgroundColor="#F8F4F0">
+                    <ImageView
+                        style="@style/DestinationIconStyle"
+                        android:src="@drawable/ic_location"
+                        app:tint="#B8860B" />
+                </com.google.android.material.card.MaterialCardView>
+                <LinearLayout style="@style/DestinationTextStyle">
+                    <TextView
+                        style="@style/DestinationTitleStyle"
+                        android:text="Rabat" />
+                    <TextView
+                        style="@style/DestinationSubTitleStyle"
+                        android:text="The elegant capital city" />
+                </LinearLayout>
+            </LinearLayout>
         </LinearLayout>
+
+        <!-- Bottom spacing -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="32dp" />
+
     </LinearLayout>
-
-    <!-- Rabat -->
-    <LinearLayout
-        android:id="@+id/destRabat"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:gravity="center_vertical"
-        android:clickable="true"
-        android:focusable="true"
-        android:background="?attr/selectableItemBackground"
-        android:paddingVertical="8dp">
-
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            app:cardCornerRadius="12dp"
-            app:cardBackgroundColor="#F8F4F0"
-            app:cardElevation="0dp">
-            <ImageView
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_gravity="center"
-                android:src="@drawable/ic_location"
-                app:tint="#B8860B" />
-        </com.google.android.material.card.MaterialCardView>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Rabat, Rabat-Salé-Kénitra"
-                android:textColor="@color/black"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Popular destination"
-                android:textColor="#888888"
-                android:textSize="13sp" />
-        </LinearLayout>
-    </LinearLayout>
-
-    <!-- Tangier -->
-    <LinearLayout
-        android:id="@+id/destTangier"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:layout_marginBottom="24dp"
-        android:gravity="center_vertical"
-        android:clickable="true"
-        android:focusable="true"
-        android:background="?attr/selectableItemBackground"
-        android:paddingVertical="8dp">
-
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            app:cardCornerRadius="12dp"
-            app:cardBackgroundColor="#F0F4F8"
-            app:cardElevation="0dp">
-            <ImageView
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_gravity="center"
-                android:src="@drawable/ic_location"
-                app:tint="#1B4F72" />
-        </com.google.android.material.card.MaterialCardView>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Tangier, Tanger-Tétouan-Al Hoceima"
-                android:textColor="@color/black"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Great for seaside stays"
-                android:textColor="#888888"
-                android:textSize="13sp" />
-        </LinearLayout>
-    </LinearLayout>
-
-</LinearLayout>
+</ScrollView>

@@ -43,10 +43,10 @@ public class AdminAddEditHotelActivity extends AppCompatActivity {
 
         if (hotelId != null) {
             isEditing = true;
-            binding.toolbar.setTitle("Modifier l'Hôtel");
+            binding.toolbar.setTitle("Edit Hotel");
             loadHotelData(); // Pré-remplissage du formulaire
         } else {
-            binding.toolbar.setTitle("Ajouter un Hôtel");
+            binding.toolbar.setTitle("Add Hotel");
         }
 
         binding.btnSave.setOnClickListener(v -> saveHotel());
@@ -68,7 +68,7 @@ public class AdminAddEditHotelActivity extends AppCompatActivity {
             binding.etPrice.setText(String.valueOf(hotel.getPrice_per_night()));
             binding.etRating.setText(String.valueOf(hotel.getRating()));
             binding.etImageUrl.setText(hotel.getImageUrl());
-        }, e -> Toast.makeText(this, "Erreur de chargement : " + e.getMessage(), Toast.LENGTH_SHORT).show());
+        }, e -> Toast.makeText(this, "Loading error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
     /**
@@ -84,7 +84,7 @@ public class AdminAddEditHotelActivity extends AppCompatActivity {
 
         // Validation minimale
         if (name.isEmpty() || city.isEmpty() || priceStr.isEmpty()) {
-            Toast.makeText(this, "Veuillez remplir les champs obligatoires", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please fill in required fields", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -101,14 +101,14 @@ public class AdminAddEditHotelActivity extends AppCompatActivity {
         // Envoi vers le Repository (Update ou Add)
         if (isEditing) {
             hotelRepository.updateHotel(hotel, () -> {
-                Toast.makeText(this, "Hôtel mis à jour", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Hotel updated", Toast.LENGTH_SHORT).show();
                 finish();
-            }, e -> Toast.makeText(this, "Erreur : " + e.getMessage(), Toast.LENGTH_SHORT).show());
+            }, e -> Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
         } else {
             hotelRepository.addHotel(hotel, () -> {
-                Toast.makeText(this, "Hôtel ajouté avec succès", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Hotel added successfully", Toast.LENGTH_SHORT).show();
                 finish();
-            }, e -> Toast.makeText(this, "Erreur : " + e.getMessage(), Toast.LENGTH_SHORT).show());
+            }, e -> Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
         }
     }
 }
