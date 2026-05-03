@@ -68,6 +68,24 @@
             android:name=".view.activity.FullScreenImageActivity"
             android:exported="false"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
+
+        <!-- Admin Activities -->
+        <activity
+            android:name=".view.activity.AdminDashboardActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.activity.AdminHotelsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.activity.AdminAddEditHotelActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".view.activity.AdminReservationsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.activity.AdminUsersActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

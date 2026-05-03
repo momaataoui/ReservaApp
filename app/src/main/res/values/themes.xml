@@ -50,4 +50,8 @@
     <style name="RoundedImageView">
         <item name="cornerSize">16dp</item>
     </style>
+
+    <style name="RoundedCorners8">
+        <item name="cornerSize">8dp</item>
+    </style>
 </resources>

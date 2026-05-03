@@ -3,17 +3,22 @@ package com.ensab.reservaapp.model;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Modèle de données représentant un établissement hôtelier.
+ * Utilisé pour la collection 'hotels' dans Firestore.
+ */
 public class Hotel {
-    private String id;
-    private String name;
-    private String city;
-    private String description;
-    private double price_per_night;
-    private double rating;
-    private String imageUrl; // Image principale
-    private List<String> images; // Liste des images additionnelles
+    private String id;              // ID unique généré par Firestore
+    private String name;            // Nom de l'hôtel
+    private String city;            // Ville où se situe l'hôtel (utilisée pour le filtrage)
+    private String description;      // Description détaillée
+    private double price_per_night; // Prix par nuit
+    private double rating;          // Note moyenne (ex: 4.5)
+    private String imageUrl;        // URL de l'image principale (couverture)
+    private List<String> images;    // Galerie d'images additionnelles
 
     public Hotel() {
+        // Initialisation de la liste pour éviter les NullPointerException
         this.images = new ArrayList<>();
     }
 

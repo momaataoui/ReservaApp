@@ -44,6 +44,11 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+/**
+ * ProfileActivity gère les informations personnelles de l'utilisateur.
+ * Elle permet de modifier son nom, son numéro de téléphone, sa photo de profil
+ * et donne accès au panneau d'administration si l'utilisateur possède le rôle 'admin'.
+ */
 public class ProfileActivity extends AppCompatActivity {
 
     private ActivityProfileBinding binding;
@@ -52,8 +57,9 @@ public class ProfileActivity extends AppCompatActivity {
     private SharedPreferences sharedPreferences;
     private static final String SHARED_PREF_NAME = "user_session";
 
-    private ProfileViewModel viewModel;
+    private ProfileViewModel viewModel; // Utilisation d'un ViewModel pour survivre aux rotations d'écran
 
+    // Launchers pour les actions multimédia (Photos)
     private ActivityResultLauncher<PickVisualMediaRequest> galleryLauncher;
     private ActivityResultLauncher<Uri> cameraLauncher;
     private ActivityResultLauncher<String> permissionLauncher;
@@ -63,6 +69,7 @@ public class ProfileActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Configuration de la barre de statut transparente
         Window window = getWindow();
         window.setStatusBarColor(Color.TRANSPARENT);
         WindowInsetsControllerCompat windowInsetsController =
@@ -74,7 +81,7 @@ public class ProfileActivity extends AppCompatActivity {
         binding = ActivityProfileBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // Fix for navigation bar overlap
+        // Correction du padding pour la barre de navigation Android
         ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             binding.bottomNavContainer.setPadding(0, 0, 0, systemBars.bottom);
@@ -90,11 +97,11 @@ public class ProfileActivity extends AppCompatActivity {
 
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) {
-            goToLogin();
+            goToLogin(); // Redirection si non connecté
             return;
         }
 
-        // Si les données sont déjà dans le ViewModel (après rotation), on les restaure
+        // Restauration ou chargement des données
         if (viewModel.isDataLoaded()) {
             restoreDataFromViewModel();
         } else {
@@ -104,14 +111,20 @@ public class ProfileActivity extends AppCompatActivity {
         setupTextWatchers();
         initPhotoPickers();
 
+        // Branchement des clics
         binding.btnChangePic.setOnClickListener(v -> showPhotoOptionsDialog());
         binding.btnSaveProfile.setOnClickListener(v -> saveProfileChanges());
         binding.btnLogoutDialog.setOnClickListener(v -> logoutUser());
+        binding.btnAdminPanel.setOnClickListener(v -> 
+            NavigationHelper.fastNavigate(this, AdminDashboardActivity.class));
 
         NavigationHelper.setSelectedItem(this, R.id.navProfile);
         setupNavigation();
     }
 
+    /**
+     * Observe les changements de saisie pour mettre à jour le ViewModel en temps réel.
+     */
     private void setupTextWatchers() {
         binding.etEditName.addTextChangedListener(new SimpleTextWatcher() {
             @Override
@@ -128,6 +141,9 @@ public class ProfileActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Remplit les champs UI à partir des données stockées dans le ViewModel.
+     */
     private void restoreDataFromViewModel() {
         binding.etEditName.setText(viewModel.name.getValue());
         binding.etEditEmail.setText(viewModel.email.getValue());
@@ -145,6 +161,9 @@ public class ProfileActivity extends AppCompatActivity {
         binding.bottomNavContainer.findViewById(R.id.navBookings).setOnClickListener(v -> NavigationHelper.fastNavigate(this, MyBookingsActivity.class));
     }
 
+    /**
+     * Sauvegarde les modifications (Nom, Téléphone) dans Firestore.
+     */
     private void saveProfileChanges() {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user == null) return;
@@ -154,14 +173,14 @@ public class ProfileActivity extends AppCompatActivity {
         String newPhone = binding.etEditPhone.getText().toString().trim();
         
         if (newName.isEmpty()) {
-            Toast.makeText(this, "Name cannot be empty", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Le nom ne peut pas être vide", Toast.LENGTH_SHORT).show();
             return;
         }
 
         db.collection("users").document(userId)
             .update("fullName", newName, "phone", newPhone)
-            .addOnSuccessListener(aVoid -> Toast.makeText(this, "Profile updated", Toast.LENGTH_SHORT).show())
-            .addOnFailureListener(e -> Toast.makeText(this, "Update failed", Toast.LENGTH_SHORT).show());
+            .addOnSuccessListener(aVoid -> Toast.makeText(this, "Profil mis à jour", Toast.LENGTH_SHORT).show())
+            .addOnFailureListener(e -> Toast.makeText(this, "Échec de la mise à jour", Toast.LENGTH_SHORT).show());
     }
 
     private void goToLogin() {
@@ -171,49 +190,37 @@ public class ProfileActivity extends AppCompatActivity {
         finish();
     }
 
+    /**
+     * Configure les sélecteurs de photo (Appareil photo / Galerie).
+     */
     private void initPhotoPickers() {
+        // Galerie (Android Photo Picker)
         galleryLauncher = registerForActivityResult(
             new ActivityResultContracts.PickVisualMedia(),
-            uri -> {
-                if (uri != null) {
-                    uploadProfileImage(uri);
-                }
-            }
+            uri -> { if (uri != null) uploadProfileImage(uri); }
         );
 
+        // Appareil photo
         cameraLauncher = registerForActivityResult(
             new ActivityResultContracts.TakePicture(),
-            success -> {
-                if (success && cameraImageUri != null) {
-                    uploadProfileImage(cameraImageUri);
-                }
-            }
+            success -> { if (success && cameraImageUri != null) uploadProfileImage(cameraImageUri); }
         );
 
+        // Permissions
         permissionLauncher = registerForActivityResult(
             new ActivityResultContracts.RequestPermission(),
-            isGranted -> {
-                if (isGranted) {
-                    openCamera();
-                } else {
-                    Toast.makeText(this, "Camera permission denied", Toast.LENGTH_SHORT).show();
-                }
-            }
+            isGranted -> { if (isGranted) openCamera(); else Toast.makeText(this, "Permission refusée", Toast.LENGTH_SHORT).show(); }
         );
     }
 
+    // --- Méthodes utilitaires pour la photo ---
     private void showPhotoOptionsDialog() {
-        String[] options = {"Take Photo", "Choose from Gallery"};
+        String[] options = {"Prendre une photo", "Choisir dans la galerie"};
         new AlertDialog.Builder(this)
-            .setTitle("Change Profile Picture")
+            .setTitle("Changer la photo de profil")
             .setItems(options, (dialog, which) -> {
-                if (which == 0) {
-                    checkCameraPermission();
-                } else {
-                    openGallery();
-                }
-            })
-            .show();
+                if (which == 0) checkCameraPermission(); else openGallery();
+            }).show();
     }
 
     private void checkCameraPermission() {
@@ -230,69 +237,69 @@ public class ProfileActivity extends AppCompatActivity {
             cameraImageUri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", photoFile);
             cameraLauncher.launch(cameraImageUri);
         } catch (IOException e) {
-            Toast.makeText(this, "File creation error", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Erreur lors de la création du fichier", Toast.LENGTH_SHORT).show();
         }
     }
 
     private File createImageFile() throws IOException {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        return File.createTempFile(imageFileName, ".jpg", storageDir);
+        return File.createTempFile("JPEG_" + timeStamp + "_", ".jpg", storageDir);
     }
 
     private void openGallery() {
         galleryLauncher.launch(new PickVisualMediaRequest.Builder()
-                .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
-                .build());
+                .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE).build());
     }
 
     private void uploadProfileImage(Uri imageUri) {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user == null) return;
-
-        // Note: Actual file upload to Firebase Storage is disabled in free tier.
-        // We save the URI string to Firestore so it persists locally on this device.
-        String uriString = imageUri.toString();
         db.collection("users").document(user.getUid())
-            .update("profileImage", uriString)
+            .update("profileImage", imageUri.toString())
             .addOnSuccessListener(aVoid -> {
                 binding.ivEditProfilePic.setImageURI(imageUri);
-                Toast.makeText(this, "Profile image updated locally", Toast.LENGTH_SHORT).show();
-            })
-            .addOnFailureListener(e -> Toast.makeText(this, "Failed to save image reference", Toast.LENGTH_SHORT).show());
+                Toast.makeText(this, "Photo mise à jour", Toast.LENGTH_SHORT).show();
+            });
     }
 
+    /**
+     * Charge les données de l'utilisateur et gère la visibilité du panneau Admin.
+     */
     private void loadUserData() {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user == null) return;
         
-        String userId = user.getUid();
-        db.collection("users").document(userId).get()
+        db.collection("users").document(user.getUid()).get()
             .addOnSuccessListener(documentSnapshot -> {
                 if (documentSnapshot.exists()) {
                     String fullName = documentSnapshot.getString("fullName");
                     String email = documentSnapshot.getString("email");
                     String phone = documentSnapshot.getString("phone");
                     String imageUrl = documentSnapshot.getString("profileImage");
+                    String role = documentSnapshot.getString("role");
 
+                    // Mise à jour du ViewModel
                     viewModel.name.setValue(fullName);
                     viewModel.email.setValue(email);
                     viewModel.phone.setValue(phone != null ? phone : "");
                     viewModel.profileImageUrl.setValue(imageUrl != null ? imageUrl : "");
                     viewModel.setDataLoaded(true);
 
+                    // Affichage conditionnel du bouton Admin
+                    binding.btnAdminPanel.setVisibility("admin".equals(role) ? android.view.View.VISIBLE : android.view.View.GONE);
+
                     restoreDataFromViewModel();
                 }
-            })
-            .addOnFailureListener(e -> Toast.makeText(this, "Error loading data", Toast.LENGTH_SHORT).show());
+            });
     }
 
+    /**
+     * Déconnecte l'utilisateur et efface la session locale.
+     */
     private void logoutUser() {
         mAuth.signOut();
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.clear();
-        editor.apply();
+        sharedPreferences.edit().clear().apply();
         goToLogin();
     }
 

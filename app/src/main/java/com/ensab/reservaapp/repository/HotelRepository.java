@@ -9,15 +9,25 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * HotelRepository centralise l'accès aux données des hôtels et des interactions utilisateurs (favoris, réservations).
+ * Utilise Firestore pour le stockage et Firebase Auth pour l'identification.
+ */
 public class HotelRepository {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseAuth auth = FirebaseAuth.getInstance();
 
+    /**
+     * Interface de retour pour les listes d'hôtels.
+     */
     public interface HotelCallback {
         void onCallback(List<Hotel> hotels);
         void onError(Exception e);
     }
 
+    /**
+     * Interface de retour pour les IDs des favoris.
+     */
     public interface FavoritesCallback {
         void onCallback(List<String> favoriteIds);
         void onError(Exception e);
@@ -25,12 +35,17 @@ public class HotelRepository {
 
     private com.google.firebase.firestore.ListenerRegistration favoritesListener;
 
+    /**
+     * Observe en temps réel les changements dans la liste des favoris de l'utilisateur.
+     * Met à jour l'UI instantanément quand un hôtel est ajouté/supprimé des favoris.
+     */
     public void observeFavorites(FavoritesCallback callback) {
         if (auth.getCurrentUser() == null) {
             callback.onCallback(new ArrayList<>());
             return;
         }
 
+        // Nettoyage de l'ancien listener pour éviter les fuites de mémoire
         if (favoritesListener != null) {
             favoritesListener.remove();
         }
@@ -43,14 +58,47 @@ public class HotelRepository {
                     }
 
                     if (documentSnapshot != null && documentSnapshot.exists()) {
-                        List<String> favorites = (List<String>) documentSnapshot.get("favorites");
-                        callback.onCallback(favorites != null ? favorites : new ArrayList<>());
+                        Object favs = documentSnapshot.get("favorites");
+                        if (favs instanceof List) {
+                            callback.onCallback((List<String>) favs);
+                        } else {
+                            callback.onCallback(new ArrayList<>());
+                        }
                     } else {
                         callback.onCallback(new ArrayList<>());
                     }
                 });
     }
 
+    /**
+     * Récupère une fois la liste des favoris (version non-observée).
+     */
+    public void getFavorites(FavoritesCallback callback) {
+        if (auth.getCurrentUser() == null) {
+            callback.onCallback(new ArrayList<>());
+            return;
+        }
+
+        db.collection("users").document(auth.getCurrentUser().getUid())
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        Object favs = documentSnapshot.get("favorites");
+                        if (favs instanceof List) {
+                            callback.onCallback((List<String>) favs);
+                        } else {
+                            callback.onCallback(new ArrayList<>());
+                        }
+                    } else {
+                        callback.onCallback(new ArrayList<>());
+                    }
+                })
+                .addOnFailureListener(callback::onError);
+    }
+
+    /**
+     * Récupère tous les hôtels disponibles dans Firestore.
+     */
     public void getAllHotels(HotelCallback callback) {
         db.collection("hotels").get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
@@ -58,6 +106,7 @@ public class HotelRepository {
                 for (QueryDocumentSnapshot doc : task.getResult()) {
                     Hotel hotel = doc.toObject(Hotel.class);
                     hotel.setId(doc.getId());
+                    // Gestion de la compatibilité des noms de champs (price vs price_per_night)
                     if (doc.contains("price_per_night")) {
                         hotel.setPrice_per_night(doc.getDouble("price_per_night"));
                     } else if (doc.contains("price")) {
@@ -72,12 +121,16 @@ public class HotelRepository {
         });
     }
 
+    /**
+     * Récupère une liste d'hôtels spécifique basée sur leurs IDs (utilisé pour la Wishlist).
+     */
     public void getHotelsByIds(List<String> ids, HotelCallback callback) {
         if (ids == null || ids.isEmpty()) {
             callback.onCallback(new ArrayList<>());
             return;
         }
 
+        // Limitation Firestore : 'whereIn' est limité à 10 ou 30 items
         List<String> limitedIds = ids.size() > 30 ? ids.subList(0, 30) : ids;
 
         db.collection("hotels")
@@ -98,6 +151,9 @@ public class HotelRepository {
                 .addOnFailureListener(callback::onError);
     }
 
+    /**
+     * Récupère les détails d'un seul hôtel via son ID.
+     */
     public void getHotelById(String id, java.util.function.Consumer<Hotel> onSuccess, java.util.function.Consumer<Exception> onError) {
         db.collection("hotels").document(id)
                 .get()
@@ -108,8 +164,6 @@ public class HotelRepository {
                             hotel.setId(documentSnapshot.getId());
                             if (documentSnapshot.contains("price_per_night")) {
                                 hotel.setPrice_per_night(documentSnapshot.getDouble("price_per_night"));
-                            } else if (documentSnapshot.contains("price")) {
-                                hotel.setPrice_per_night(documentSnapshot.getDouble("price"));
                             }
                             onSuccess.accept(hotel);
                         } else {
@@ -122,39 +176,26 @@ public class HotelRepository {
                 .addOnFailureListener(onError::accept);
     }
 
-    public void getFavorites(FavoritesCallback callback) {
-        if (auth.getCurrentUser() == null) {
-            callback.onCallback(new ArrayList<>());
-            return;
-        }
-
-        db.collection("users").document(auth.getCurrentUser().getUid())
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        List<String> favorites = (List<String>) documentSnapshot.get("favorites");
-                        callback.onCallback(favorites != null ? favorites : new ArrayList<>());
-                    } else {
-                        callback.onCallback(new ArrayList<>());
-                    }
-                })
-                .addOnFailureListener(callback::onError);
-    }
-
+    /**
+     * Ajoute ou supprime un hôtel de la liste des favoris de l'utilisateur.
+     */
     public void toggleFavorite(String hotelId, boolean isFavorite, Runnable onSuccess, java.util.function.Consumer<Exception> onError) {
         if (auth.getCurrentUser() == null) return;
         String userId = auth.getCurrentUser().getUid();
 
         if (isFavorite) {
+            // Déjà en favori -> On le retire
             db.collection("users").document(userId)
                     .update("favorites", FieldValue.arrayRemove(hotelId))
                     .addOnSuccessListener(aVoid -> onSuccess.run())
                     .addOnFailureListener(onError::accept);
         } else {
+            // Pas en favori -> On l'ajoute
             db.collection("users").document(userId)
                     .update("favorites", FieldValue.arrayUnion(hotelId))
                     .addOnSuccessListener(aVoid -> onSuccess.run())
                     .addOnFailureListener(e -> {
+                        // Si le champ 'favorites' n'existe pas du tout, on le crée
                         java.util.Map<String, Object> data = new java.util.HashMap<>();
                         data.put("favorites", java.util.Arrays.asList(hotelId));
                         db.collection("users").document(userId).set(data, com.google.firebase.firestore.SetOptions.merge())
@@ -164,10 +205,40 @@ public class HotelRepository {
         }
     }
 
+    /**
+     * Enregistre une nouvelle réservation dans la collection 'bookings'.
+     */
     public void performBooking(java.util.Map<String, Object> bookingData, Runnable onSuccess, java.util.function.Consumer<Exception> onError) {
         db.collection("bookings")
                 .add(bookingData)
                 .addOnSuccessListener(documentReference -> onSuccess.run())
+                .addOnFailureListener(onError::accept);
+    }
+
+    // --- Méthodes d'Administration ---
+
+    public void addHotel(Hotel hotel, Runnable onSuccess, java.util.function.Consumer<Exception> onError) {
+        db.collection("hotels")
+                .add(hotel)
+                .addOnSuccessListener(documentReference -> onSuccess.run())
+                .addOnFailureListener(onError::accept);
+    }
+
+    public void updateHotel(Hotel hotel, Runnable onSuccess, java.util.function.Consumer<Exception> onError) {
+        if (hotel.getId() == null) {
+            onError.accept(new Exception("Hotel ID is missing"));
+            return;
+        }
+        db.collection("hotels").document(hotel.getId())
+                .set(hotel)
+                .addOnSuccessListener(aVoid -> onSuccess.run())
+                .addOnFailureListener(onError::accept);
+    }
+
+    public void deleteHotel(String hotelId, Runnable onSuccess, java.util.function.Consumer<Exception> onError) {
+        db.collection("hotels").document(hotelId)
+                .delete()
+                .addOnSuccessListener(aVoid -> onSuccess.run())
                 .addOnFailureListener(onError::accept);
     }
 }

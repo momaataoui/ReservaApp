@@ -11,13 +11,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+p/**
+ * HotelListViewModel orchestre l'affichage de la liste des hôtels pour le client.
+ * Il gère le chargement depuis Firestore, le filtrage par recherche,
+ * le tri par prix/note et la gestion des favoris.
+ */
 public class HotelListViewModel extends ViewModel {
     private final HotelRepository repository = new HotelRepository();
     
+    // LiveData pour la liste brute et la liste filtrée
     private final MutableLiveData<List<Hotel>> _allHotels = new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<List<Hotel>> _filteredHotels = new MutableLiveData<>(new ArrayList<>());
     public LiveData<List<Hotel>> filteredHotels = _filteredHotels;
 
+    // LiveData pour les hôtels les mieux notés (Section "Relevant")
     private final MutableLiveData<List<Hotel>> _topRelevantHotels = new MutableLiveData<>(new ArrayList<>());
     public LiveData<List<Hotel>> topRelevantHotels = _topRelevantHotels;
 
@@ -27,6 +34,7 @@ public class HotelListViewModel extends ViewModel {
     private final MutableLiveData<String> _userName = new MutableLiveData<>("");
     public LiveData<String> userName = _userName;
 
+    // Liste des IDs des hôtels mis en favoris par l'utilisateur
     private final MutableLiveData<List<String>> _favoriteIds = new MutableLiveData<>(new ArrayList<>());
     public LiveData<List<String>> favoriteIds = _favoriteIds;
 
@@ -34,9 +42,12 @@ public class HotelListViewModel extends ViewModel {
     public HotelListViewModel() {
         loadUserName();
         loadHotels();
-        observeFavorites();
+        observeFavorites(); // Écoute en temps réel des changements de favoris
     }
 
+    /**
+     * Met en place un SnapshotListener sur les favoris de l'utilisateur.
+     */
     public void observeFavorites() {
         repository.observeFavorites(new HotelRepository.FavoritesCallback() {
             @Override
@@ -46,11 +57,14 @@ public class HotelListViewModel extends ViewModel {
 
             @Override
             public void onError(Exception e) {
-                // Handle error
+                // Gestion d'erreur silencieuse
             }
         });
     }
 
+    /**
+     * Charge manuellement les favoris (fallback).
+     */
     public void loadFavorites() {
         repository.getFavorites(new HotelRepository.FavoritesCallback() {
             @Override
@@ -60,11 +74,13 @@ public class HotelListViewModel extends ViewModel {
 
             @Override
             public void onError(Exception e) {
-                // Handle error
             }
         });
     }
 
+    /**
+     * Ajoute ou retire un hôtel des favoris de l'utilisateur.
+     */
     public void toggleFavorite(Hotel hotel) {
         List<String> currentFavs = _favoriteIds.getValue();
         if (currentFavs == null) return;
@@ -73,6 +89,9 @@ public class HotelListViewModel extends ViewModel {
         repository.toggleFavorite(hotel.getId(), isFavorite, this::loadFavorites, e -> {});
     }
 
+    /**
+     * Récupère le prénom de l'utilisateur pour l'affichage personnalisé sur l'accueil.
+     */
     private void loadUserName() {
         FirebaseAuth auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() != null) {
@@ -97,6 +116,9 @@ public class HotelListViewModel extends ViewModel {
     private final MutableLiveData<List<Hotel>> _wishlistHotels = new MutableLiveData<>(new ArrayList<>());
     public LiveData<List<Hotel>> wishlistHotels = _wishlistHotels;
 
+    /**
+     * Charge une liste spécifique d'hôtels (utilisé pour l'écran Favoris).
+     */
     public void loadHotelsByIds(List<String> ids) {
         if (ids == null || ids.isEmpty()) {
             _wishlistHotels.setValue(new ArrayList<>());
@@ -118,6 +140,9 @@ public class HotelListViewModel extends ViewModel {
         });
     }
 
+    /**
+     * Charge tous les hôtels disponibles depuis Firestore.
+     */
     public void loadHotels() {
         _isLoading.setValue(true);
         repository.getAllHotels(new HotelRepository.HotelCallback() {
@@ -126,7 +151,7 @@ public class HotelListViewModel extends ViewModel {
                 _allHotels.setValue(hotels);
                 _filteredHotels.setValue(hotels);
                 
-                // Extraire les 4 mieux notés pour "Most Relevant"
+                // Extraire les 4 mieux notés pour la section "Most Relevant"
                 List<Hotel> top4 = new ArrayList<>(hotels);
                 top4.sort((h1, h2) -> Double.compare(h2.getRating(), h1.getRating()));
                 _topRelevantHotels.setValue(top4.stream().limit(4).collect(Collectors.toList()));
@@ -141,6 +166,9 @@ public class HotelListViewModel extends ViewModel {
         });
     }
 
+    /**
+     * Filtre la liste des hôtels en fonction de la saisie utilisateur (Nom ou Ville).
+     */
     public void filterHotels(String query) {
         String lowerQuery = query.toLowerCase().trim();
         List<Hotel> all = _allHotels.getValue();
@@ -157,6 +185,9 @@ public class HotelListViewModel extends ViewModel {
         }
     }
 
+    /**
+     * Filtre rapide pour les hôtels de luxe (Prix >= 1300 DH).
+     */
     public void filterLuxe() {
         List<Hotel> all = _allHotels.getValue();
         if (all != null) {
@@ -169,6 +200,9 @@ public class HotelListViewModel extends ViewModel {
     private boolean isPriceAscending = true;
     private boolean isRatingDescending = true;
 
+    /**
+     * Trie la liste actuelle par prix (alterné Croissant/Décroissant).
+     */
     public void sortByPrice() {
         List<Hotel> current = _filteredHotels.getValue();
         if (current == null) return;
@@ -182,6 +216,9 @@ public class HotelListViewModel extends ViewModel {
         _filteredHotels.setValue(sorted);
     }
 
+    /**
+     * Trie la liste actuelle par note (alterné Croissant/Décroissant).
+     */
     public void sortByRating() {
         List<Hotel> current = _filteredHotels.getValue();
         if (current == null) return;
@@ -189,11 +226,10 @@ public class HotelListViewModel extends ViewModel {
         if (isRatingDescending) {
             sorted.sort((h1, h2) -> Double.compare(h1.getRating(), h2.getRating()));
         } else {
-            sorted.sort((h1, h2) -> Double.compare(h2.getRating(), h1.getRating()));
+            sorted.sort((h2, h1) -> Double.compare(h2.getRating(), h1.getRating()));
         }
         isRatingDescending = !isRatingDescending;
         _filteredHotels.setValue(sorted);
     }
-
-
+}
 }

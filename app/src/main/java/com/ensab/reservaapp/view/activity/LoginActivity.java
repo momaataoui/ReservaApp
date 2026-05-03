@@ -37,6 +37,10 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * LoginActivity gère l'authentification des utilisateurs (Email/Mot de passe et Google).
+ * Elle assure également la redirection vers le bon tableau de bord (Admin vs Client).
+ */
 public class LoginActivity extends AppCompatActivity {
 
     private static final String TAG = "LoginActivity";
@@ -44,6 +48,8 @@ public class LoginActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
     private SharedPreferences sharedPreferences;
+    
+    // Constantes pour la gestion de session locale
     private static final String SHARED_PREF_NAME = "user_session";
     private static final String KEY_IS_LOGGED_IN = "is_logged_in";
     private static final String KEY_USER_EMAIL = "user_email";
@@ -56,6 +62,7 @@ public class LoginActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         sharedPreferences = getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
 
+        // Vérification si une session est déjà active
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (sharedPreferences.getBoolean(KEY_IS_LOGGED_IN, false) && currentUser != null) {
             checkUserRoleAndRedirect(currentUser);
@@ -65,20 +72,25 @@ public class LoginActivity extends AppCompatActivity {
         binding = ActivityLoginBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // Fix for navigation bar overlap
+        // Correction du chevauchement avec la barre système
         ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
+        // Listeners pour les boutons de connexion
         binding.btnLogin.setOnClickListener(v -> handleEmailLogin());
         binding.btnGoogle.setOnClickListener(v -> signInWithGoogle());
 
+        // Navigation vers Inscription et Mot de passe oublié
         binding.tvSignUp.setOnClickListener(v -> startActivity(new Intent(this, SignUpActivity.class)));
         binding.tvForgotPassword.setOnClickListener(v -> startActivity(new Intent(this, ForgotPasswordActivity.class)));
     }
 
+    /**
+     * Valide les champs et lance la connexion par Email.
+     */
     private void handleEmailLogin() {
         String email = binding.etEmail.getText().toString().trim();
         String password = binding.etPassword.getText().toString().trim();
@@ -94,6 +106,9 @@ public class LoginActivity extends AppCompatActivity {
         loginUser(email, password);
     }
 
+    /**
+     * Authentification Firebase Email/Password.
+     */
     private void loginUser(String email, String password) {
         mAuth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(this, task -> {
@@ -109,6 +124,9 @@ public class LoginActivity extends AppCompatActivity {
             });
     }
 
+    /**
+     * Lance le flux de connexion Google via CredentialManager.
+     */
     private void signInWithGoogle() {
         CredentialManager credentialManager = CredentialManager.create(this);
         String clientId = getString(R.string.default_web_client_id);
@@ -122,8 +140,6 @@ public class LoginActivity extends AppCompatActivity {
         GetCredentialRequest request = new GetCredentialRequest.Builder()
                 .addCredentialOption(googleIdOption)
                 .build();
-
-        Log.d(TAG, "Lancement de la connexion Google...");
 
         credentialManager.getCredentialAsync(this, request, null, Runnable::run, 
             new androidx.credentials.CredentialManagerCallback<GetCredentialResponse, GetCredentialException>() {
@@ -139,12 +155,14 @@ public class LoginActivity extends AppCompatActivity {
                 }
                 @Override
                 public void onError(@NonNull GetCredentialException e) {
-                    Log.e(TAG, "ERREUR GOOGLE: " + e.getMessage());
                     runOnUiThread(() -> Toast.makeText(LoginActivity.this, "Erreur : " + e.getMessage(), Toast.LENGTH_LONG).show());
                 }
             });
     }
 
+    /**
+     * Lie le jeton Google ID à Firebase Auth.
+     */
     private void firebaseAuthWithGoogle(String idToken) {
         AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
         mAuth.signInWithCredential(credential)
@@ -161,6 +179,9 @@ public class LoginActivity extends AppCompatActivity {
             });
     }
 
+    /**
+     * S'assure que l'utilisateur Google possède un document dans la collection 'users'.
+     */
     private void createUserInFirestoreIfNotExist(FirebaseUser user) {
         db.collection("users").document(user.getUid()).get()
             .addOnSuccessListener(documentSnapshot -> {
@@ -173,44 +194,47 @@ public class LoginActivity extends AppCompatActivity {
 
                     db.collection("users").document(user.getUid()).set(userData)
                         .addOnSuccessListener(aVoid -> checkUserRoleAndRedirect(user))
-                        .addOnFailureListener(e -> {
-                            Log.e(TAG, "Erreur création Firestore: " + e.getMessage());
-                            checkUserRoleAndRedirect(user);
-                        });
+                        .addOnFailureListener(e -> checkUserRoleAndRedirect(user));
                 } else {
                     checkUserRoleAndRedirect(user);
                 }
             })
-            .addOnFailureListener(e -> {
-                Log.e(TAG, "Erreur lecture Firestore: " + e.getMessage());
-                checkUserRoleAndRedirect(user);
-            });
+            .addOnFailureListener(e -> checkUserRoleAndRedirect(user));
     }
 
+    /**
+     * Vérifie le rôle de l'utilisateur dans Firestore et redirige.
+     * Admin -> AdminDashboardActivity
+     * Client -> ChoiceActivity
+     */
     private void checkUserRoleAndRedirect(FirebaseUser user) {
+        // Optionnel : Forcer la vérification de l'email
+        /*
         if (!user.isEmailVerified()) {
             Toast.makeText(this, "Please verify your email first.", Toast.LENGTH_LONG).show();
             mAuth.signOut();
             return;
         }
+        */
 
         db.collection("users").document(user.getUid()).get()
             .addOnSuccessListener(documentSnapshot -> {
                 String role = documentSnapshot.getString("role");
-                if ("admin".equals(role)) {
-                    // Pour le moment, redirection vers ChoiceActivity car admin n'est pas implémenté
-                    // Mais on loggue l'info pour préparer l'avenir
-                    Log.d(TAG, "Admin connecté !");
-                    NavigationHelper.fastNavigate(this, ChoiceActivity.class, true);
+                if ("admin".equalsIgnoreCase(role)) {
+                    NavigationHelper.fastNavigate(this, AdminDashboardActivity.class, true);
                 } else {
                     NavigationHelper.fastNavigate(this, ChoiceActivity.class, true);
                 }
             })
             .addOnFailureListener(e -> {
+                // Par défaut, on redirige vers l'accueil client en cas d'erreur
                 NavigationHelper.fastNavigate(this, ChoiceActivity.class, true);
             });
     }
 
+    /**
+     * Sauvegarde l'état de connexion localement.
+     */
     private void saveSession(String email) {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putBoolean(KEY_IS_LOGGED_IN, true);

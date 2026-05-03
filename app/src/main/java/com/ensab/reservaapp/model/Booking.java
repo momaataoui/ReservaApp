@@ -2,22 +2,26 @@ package com.ensab.reservaapp.model;
 
 import com.google.firebase.firestore.Exclude;
 
+/**
+ * Modèle de données représentant une réservation d'hôtel.
+ * Cette classe est utilisée pour mapper les documents de la collection 'bookings' dans Firestore.
+ */
 public class Booking {
-    private String id;
-    private String userId;
-    private String hotelId;
-    private String hotelName;
-    private String hotelLocation;
-    private String hotelImageUrl;
-    private long checkIn;
-    private long checkOut;
-    private int adults;
-    private int children;
-    private int totalPrice;
-    private String status; // "pending", "confirmed", "cancelled"
+    private String id;              // ID unique du document Firestore (exclu de la sérialisation via @Exclude)
+    private String userId;          // ID de l'utilisateur qui a effectué la réservation
+    private String hotelId;          // ID de l'hôtel réservé
+    private String hotelName;        // Nom de l'hôtel (stocké pour éviter des jointures complexes)
+    private String hotelLocation;    // Localisation de l'hôtel
+    private String hotelImageUrl;    // Image de l'hôtel pour l'affichage dans la liste des réservations
+    private long checkIn;           // Date d'arrivée (Timestamp en millisecondes)
+    private long checkOut;          // Date de départ (Timestamp en millisecondes)
+    private int adults;             // Nombre d'adultes
+    private int children;           // Nombre d'enfants
+    private int totalPrice;         // Prix total de la réservation
+    private String status;          // État : "Pending" (attente), "Confirmed" (validé), "Cancelled" (annulé)
 
     public Booking() {
-        // Required for Firestore
+        // Constructeur vide requis par Firebase Firestore pour la désérialisation
     }
 
     @Exclude
