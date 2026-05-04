@@ -52,7 +52,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class HotelDetailActivity extends AppCompatActivity {
 
-    // Clés pour le passage de données entre activités via Intent
     public static final String EXTRA_HOTEL_ID       = "hotelId";
     public static final String EXTRA_HOTEL_NAME     = "hotel_name";
     public static final String EXTRA_HOTEL_LOCATION = "hotel_location";
@@ -70,7 +69,6 @@ public class HotelDetailActivity extends AppCompatActivity {
     private int pricePerNight = 1200;
     private int currentTotalPrice = 0;
 
-    // Dates par défaut (Aujourd'hui et Demain)
     private long checkInTimestamp = MaterialDatePicker.todayInUtcMilliseconds();
     private long checkOutTimestamp = checkInTimestamp + (24 * 60 * 60 * 1000);
 
@@ -80,7 +78,6 @@ public class HotelDetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Configuration du design immersif (barre de statut transparente)
         Window window = getWindow();
         window.setStatusBarColor(Color.TRANSPARENT);
         WindowInsetsControllerCompat ctrl = ViewCompat.getWindowInsetsController(window.getDecorView());
@@ -89,7 +86,6 @@ public class HotelDetailActivity extends AppCompatActivity {
         binding = ActivityHotelDetailBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // Correction pour la barre de navigation
         ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(0, 0, 0, systemBars.bottom);
@@ -101,19 +97,15 @@ public class HotelDetailActivity extends AppCompatActivity {
         viewModel = new ViewModelProvider(this).get(HotelDetailViewModel.class);
         setupObservers();
 
-        loadData();         // Chargement initial des données reçues de la liste
-        setupSpinners();    // Configuration des choix (adultes, enfants, chambres)
-        setupListeners();   // Configuration des clics
-        updateDisplay();    // Mise à jour du prix et des dates à l'écran
+        loadData();
+        setupSpinners();
+        setupListeners();
+        updateDisplay();
     }
 
-    /**
-     * Observe les changements d'état (Favoris, Succès réservation) via le ViewModel.
-     */
     private void setupObservers() {
         viewModel.hotelDetails.observe(this, hotel -> {
             if (hotel != null) {
-                // Mise à jour si Firestore a des données plus fraîches
                 binding.tvHotelName.setText(hotel.getName());
                 binding.tvHotelLocationDetail.setText(getString(R.string.location_morocco, hotel.getCity()));
                 pricePerNight = (int) hotel.getPrice_per_night();
@@ -125,7 +117,6 @@ public class HotelDetailActivity extends AppCompatActivity {
             }
         });
 
-        // Mise à jour visuelle du bouton Favori
         viewModel.isFavorite.observe(this, isFav -> {
             if (isFav) {
                 binding.btnFavorite.setIconResource(R.drawable.ic_favorite_filled);
@@ -136,40 +127,35 @@ public class HotelDetailActivity extends AppCompatActivity {
             }
         });
 
-        // Feedback après réservation
         viewModel.bookingSuccess.observe(this, success -> {
             if (success) showSuccessDialog();
         });
     }
 
     private void setupSpinners() {
-        String[] rooms = {"1 room", "2 rooms", "3 rooms"};
-        String[] adults = {"1 adult", "2 adults", "3 adults", "4 adults"};
-        String[] kids = {"0 kids", "1 kid", "2 kids"};
+        String[] roomsArr = {"1 room", "2 rooms", "3 rooms"};
+        String[] adultsArr = {"1 adult", "2 adults", "3 adults", "4 adults"};
+        String[] kidsArr = {"0 kids", "1 kid", "2 kids"};
 
-        binding.spinnerRooms.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, rooms));
-        binding.spinnerAdults.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, adults));
-        binding.spinnerKids.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, kids));
+        binding.spinnerRooms.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, roomsArr));
+        binding.spinnerAdults.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, adultsArr));
+        binding.spinnerKids.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, kidsArr));
     }
 
-    /**
-     * Récupère les données envoyées par l'activité précédente pour un affichage instantané.
-     */
     private void loadData() {
         Intent i = getIntent();
         hotelId = i.getStringExtra(EXTRA_HOTEL_ID);
         String name = i.getStringExtra(EXTRA_HOTEL_NAME);
-        
+
         if (name == null && hotelId != null) {
             viewModel.initHotel(hotelId);
         } else {
-            displayHotelData(i); // Affichage rapide via Intent
-            if (hotelId != null) viewModel.initHotel(hotelId); // Sync Firestore en arrière-plan
+            displayHotelData(i);
+            if (hotelId != null) viewModel.initHotel(hotelId);
         }
     }
 
     private void displayHotelData(Intent i) {
-        // ... Code d'affichage via Intent ...
         String name = i.getStringExtra(EXTRA_HOTEL_NAME);
         if (name != null) binding.tvHotelName.setText(name);
 
@@ -188,13 +174,10 @@ public class HotelDetailActivity extends AppCompatActivity {
         hotelImageUrl = i.getStringExtra(EXTRA_HOTEL_IMAGE_URL);
         String[] othersArr = i.getStringArrayExtra(EXTRA_HOTEL_IMAGES);
         List<String> others = othersArr != null ? Arrays.asList(othersArr) : null;
-        
+
         setupImages(hotelImageUrl, others);
     }
 
-    /**
-     * Configure le ViewPager2 pour faire défiler les images de l'hôtel.
-     */
     private void setupImages(String mainImage, List<String> others) {
         List<String> hotelImages = new ArrayList<>();
         if (mainImage != null) {
@@ -203,11 +186,14 @@ public class HotelDetailActivity extends AppCompatActivity {
         }
         if (others != null) hotelImages.addAll(others);
 
+        if (hotelImages.isEmpty()) {
+            hotelImages.add("https://images.unsplash.com/photo-1587061949733-5d6932e1574e");
+        }
+
         HotelImageAdapter adapter = new HotelImageAdapter(hotelImages, this);
         binding.viewPagerImages.setAdapter(adapter);
         new TabLayoutMediator(binding.tabLayoutIndicators, binding.viewPagerImages, (tab, pos) -> {}).attach();
 
-        // Mise à jour du compteur d'images (ex: 1 / 5)
         binding.viewPagerImages.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
@@ -223,7 +209,6 @@ public class HotelDetailActivity extends AppCompatActivity {
         binding.cardCheckIn.setOnClickListener(v -> showDatePicker(true));
         binding.cardCheckOut.setOnClickListener(v -> showDatePicker(false));
 
-        // Ouverture de Google Maps à l'adresse de l'hôtel
         binding.cardMap.setOnClickListener(v -> {
             Uri mapUri = Uri.parse("geo:0,0?q=" + Uri.encode(binding.tvHotelName.getText() + " " + binding.tvHotelLocationDetail.getText()));
             Intent mapIntent = new Intent(Intent.ACTION_VIEW, mapUri);
@@ -233,9 +218,6 @@ public class HotelDetailActivity extends AppCompatActivity {
         binding.btnBookNow.setOnClickListener(v -> showBookingSummary());
     }
 
-    /**
-     * Affiche un récapitulatif avant de confirmer la réservation.
-     */
     private void showBookingSummary() {
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
             Toast.makeText(this, "Connectez-vous pour réserver", Toast.LENGTH_SHORT).show();
@@ -246,24 +228,47 @@ public class HotelDetailActivity extends AppCompatActivity {
         View view = LayoutInflater.from(this).inflate(R.layout.bottomsheet_booking_confirm, null);
         dialog.setContentView(view);
 
-        // ... Remplissage du résumé ...
         TextView bsHotelName = view.findViewById(R.id.bsHotelName);
+        TextView bsCheckIn = view.findViewById(R.id.bsCheckIn);
+        TextView bsCheckOut = view.findViewById(R.id.bsCheckOut);
+        TextView bsNights = view.findViewById(R.id.bsNights);
+        TextView bsGuests = view.findViewById(R.id.bsGuests);
+        TextView bsTotalPrice = view.findViewById(R.id.bsTotalPrice);
+
+        // Specific format for BottomSheet (e.g. May 20, 2025)
+        SimpleDateFormat bsFmt = new SimpleDateFormat("MMM dd, yyyy", Locale.ENGLISH);
+        bsFmt.setTimeZone(TimeZone.getTimeZone("UTC"));
+
         bsHotelName.setText(binding.tvHotelName.getText());
+        bsCheckIn.setText(bsFmt.format(new Date(checkInTimestamp)));
+        bsCheckOut.setText(bsFmt.format(new Date(checkOutTimestamp)));
+
+        long diff = checkOutTimestamp - checkInTimestamp;
+        long nights = TimeUnit.MILLISECONDS.toDays(diff);
+        if (nights <= 0) nights = 1;
+
+        String nightsText = (nights > 1) ? getString(R.string.night_count_multiple, (int)nights) : getString(R.string.night_count_single);
+        bsNights.setText(nightsText);
+
+        String adults = binding.spinnerAdults.getSelectedItem().toString();
+        String kids = binding.spinnerKids.getSelectedItem().toString();
+        bsGuests.setText(String.format("%s, %s", adults, kids));
+
+        bsTotalPrice.setText(binding.tvTotalPriceBottom.getText());
 
         view.findViewById(R.id.btnConfirmBooking).setOnClickListener(v -> {
             dialog.dismiss();
-            performBooking(); // Lancement réel de la réservation
+            performBooking();
         });
+
+        view.findViewById(R.id.btnCancelBooking).setOnClickListener(v -> dialog.dismiss());
 
         dialog.show();
     }
 
-    /**
-     * Affiche le sélecteur de date (Material Date Picker).
-     */
     private void showDatePicker(boolean isCheckIn) {
         CalendarConstraints.Builder constraintsBuilder = new CalendarConstraints.Builder();
-        constraintsBuilder.setValidator(DateValidatorPointForward.now()); // On ne peut pas réserver dans le passé
+        constraintsBuilder.setValidator(DateValidatorPointForward.now());
 
         MaterialDatePicker<Long> picker = MaterialDatePicker.Builder.datePicker()
                 .setTitleText(isCheckIn ? "Sélectionnez l'arrivée" : "Sélectionnez le départ")
@@ -274,7 +279,6 @@ public class HotelDetailActivity extends AppCompatActivity {
         picker.addOnPositiveButtonClickListener(selection -> {
             if (isCheckIn) {
                 checkInTimestamp = selection;
-                // Le départ doit être au moins 1 jour après l'arrivée
                 if (checkOutTimestamp <= checkInTimestamp) checkOutTimestamp = checkInTimestamp + TimeUnit.DAYS.toMillis(1);
             } else {
                 if (selection <= checkInTimestamp) {
@@ -289,30 +293,42 @@ public class HotelDetailActivity extends AppCompatActivity {
         picker.show(getSupportFragmentManager(), "DATE_PICKER");
     }
 
-    /**
-     * Recalcule dynamiquement le prix total en fonction du nombre de nuits.
-     */
     private void updateDisplay() {
         binding.tvCheckInDate.setText(dateFormat.format(new Date(checkInTimestamp)));
         binding.tvCheckOutDate.setText(dateFormat.format(new Date(checkOutTimestamp)));
 
         long diff = checkOutTimestamp - checkInTimestamp;
-        int nights = (int) TimeUnit.MILLISECONDS.toDays(diff);
+        long nights = TimeUnit.MILLISECONDS.toDays(diff);
         if (nights <= 0) nights = 1;
 
-        int subtotal = pricePerNight * nights;
+        String nightsText = (nights > 1) ? getString(R.string.night_count_multiple, (int)nights) : getString(R.string.night_count_single);
+        binding.tvNightsCount.setText(String.format(Locale.getDefault(), "%s selected", nightsText));
+
+        int subtotal = pricePerNight * (int)nights;
         int serviceFee = 150;
         int taxFee = 50;
         currentTotalPrice = subtotal + serviceFee + taxFee;
 
-        binding.tvPriceDetailTotal.setText(getString(R.string.dh_currency, currentTotalPrice));
-        binding.tvTotalPriceBottom.setText(getString(R.string.dh_currency, currentTotalPrice));
+        // Using space for grouping to match "4 900 MAD" style
+        String formattedPrice = String.format(Locale.getDefault(), "%,d", pricePerNight).replace(',', ' ');
+        binding.tvPricePerNightValue.setText(String.format("%s MAD", formattedPrice));
+
+        binding.tvNightsSubtotalLabel.setText(nightsText);
+
+        String formattedSubtotal = String.format(Locale.getDefault(), "%,d", subtotal).replace(',', ' ');
+        binding.tvNightsSubtotalValue.setText(String.format("%s MAD", formattedSubtotal));
+
+        String formattedService = String.format(Locale.getDefault(), "%,d", serviceFee).replace(',', ' ');
+        binding.tvServiceFee.setText(String.format("%s MAD", formattedService));
+
+        String formattedTax = String.format(Locale.getDefault(), "%,d", taxFee).replace(',', ' ');
+        binding.tvTaxFee.setText(String.format("%s MAD", formattedTax));
+
+        String formattedTotal = String.format(Locale.getDefault(), "%,d", currentTotalPrice).replace(',', ' ');
+        binding.tvPriceDetailTotal.setText(String.format("%s MAD", formattedTotal));
+        binding.tvTotalPriceBottom.setText(String.format("%s MAD", formattedTotal));
     }
 
-    /**
-     * Prépare l'objet de réservation et l'envoie à Firestore.
-     * Le statut est mis à "Pending" pour validation par l'admin.
-     */
     private void performBooking() {
         Map<String, Object> booking = new HashMap<>();
         booking.put("userId", FirebaseAuth.getInstance().getUid());
@@ -323,10 +339,23 @@ public class HotelDetailActivity extends AppCompatActivity {
         booking.put("checkIn", checkInTimestamp);
         booking.put("checkOut", checkOutTimestamp);
         booking.put("totalPrice", currentTotalPrice);
-        booking.put("status", "Pending"); // Attente de validation admin
-        
-        // ... Gestion des spinners ...
-        
+        booking.put("status", "Pending");
+
+        int adults = 1;
+        try {
+            String adultsStr = binding.spinnerAdults.getSelectedItem().toString().split(" ")[0];
+            adults = Integer.parseInt(adultsStr);
+        } catch (Exception e) {}
+
+        int kids = 0;
+        try {
+            String kidsStr = binding.spinnerKids.getSelectedItem().toString().split(" ")[0];
+            kids = Integer.parseInt(kidsStr);
+        } catch (Exception e) {}
+
+        booking.put("adults", adults);
+        booking.put("children", kids);
+
         viewModel.performBooking(booking);
     }
 
@@ -334,9 +363,6 @@ public class HotelDetailActivity extends AppCompatActivity {
         viewModel.toggleFavorite();
     }
 
-    /**
-     * Affiche l'écran de succès final après confirmation Firestore.
-     */
     private void showSuccessDialog() {
         BottomSheetDialog dialog = new BottomSheetDialog(this);
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_booking_success, null);
