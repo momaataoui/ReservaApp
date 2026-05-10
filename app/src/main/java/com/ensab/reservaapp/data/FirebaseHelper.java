@@ -1,15 +1,12 @@
 package com.ensab.reservaapp.data;
 
 import android.util.Log;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QuerySnapshot;
-import com.google.android.gms.tasks.OnCompleteListener;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Classe d'aide pour interagir avec les services Firebase, y compris Firestore et l'authentification.
+ * Classe d'aide pour interagir avec les services Firebase, y compris Firestore.
  * Cette classe centralise les opérations Firebase pour rendre d'autres parties de l'application plus propres.
  */
 public class FirebaseHelper {
@@ -17,8 +14,6 @@ public class FirebaseHelper {
     private static final String TAG = "FirebaseHelper";
     // Instance de la base de données Firestore
     private final FirebaseFirestore db;
-    // Instance de l'authentification Firebase
-    private final FirebaseAuth mAuth;
 
     /**
      * Interface de rappel générique pour les opérations asynchrones.
@@ -40,20 +35,10 @@ public class FirebaseHelper {
 
     /**
      * Constructeur pour FirebaseHelper.
-     * Initialise les instances de Firebase Firestore et FirebaseAuth.
+     * Initialise l'instance de Firebase Firestore.
      */
     public FirebaseHelper() {
         db = FirebaseFirestore.getInstance();
-        mAuth = FirebaseAuth.getInstance();
-    }
-
-    /**
-     * Récupère tous les documents d'hôtel de la collection "hotels" dans Firestore.
-     * Le résultat est livré via le OnCompleteListener fourni.
-     * @param callback Un OnCompleteListener pour gérer le succès ou l'échec de l'opération de récupération.
-     */
-    public void getHotels(OnCompleteListener<QuerySnapshot> callback) {
-        db.collection("hotels").get().addOnCompleteListener(callback);
     }
 
     /**

@@ -8,7 +8,6 @@ import com.ensab.reservaapp.databinding.ActivityAdminUsersBinding;
 import com.ensab.reservaapp.model.User;
 import com.ensab.reservaapp.repository.AdminRepository;
 import com.ensab.reservaapp.view.adapter.AdminUserAdapter;
-import com.ensab.reservaapp.view.adapter.AdminUserAdapter;
 import java.util.ArrayList;
 import java.util.List;
 import androidx.core.view.ViewCompat;

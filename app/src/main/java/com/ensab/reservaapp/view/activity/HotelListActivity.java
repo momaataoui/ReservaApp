@@ -1,14 +1,11 @@
 package com.ensab.reservaapp.view.activity;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,7 +14,6 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.ensab.reservaapp.R;
 import com.ensab.reservaapp.util.NavigationHelper;
@@ -25,8 +21,6 @@ import com.ensab.reservaapp.databinding.ActivityHotelListBinding;
 import com.ensab.reservaapp.view.adapter.UnifiedHotelAdapter;
 import com.ensab.reservaapp.viewmodel.HotelListViewModel;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.google.android.material.datepicker.MaterialDatePicker;
-import java.util.ArrayList;
 
 /**
  * HotelListActivity est l'écran principal de recherche d'hôtels pour le client.

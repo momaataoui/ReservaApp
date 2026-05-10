@@ -56,26 +56,6 @@ public class AdminRepository {
                 .addOnFailureListener(onError::accept);
     }
 
-    /**
-     * Désactive ou active un compte utilisateur.
-     */
-    public void updateUserStatus(String userId, boolean disabled, Runnable onSuccess, java.util.function.Consumer<Exception> onError) {
-        db.collection("users").document(userId)
-                .update("disabled", disabled)
-                .addOnSuccessListener(aVoid -> onSuccess.run())
-                .addOnFailureListener(onError::accept);
-    }
-
-    /**
-     * Supprime définitivement un utilisateur de la base de données.
-     */
-    public void deleteUser(String userId, Runnable onSuccess, java.util.function.Consumer<Exception> onError) {
-        db.collection("users").document(userId)
-                .delete()
-                .addOnSuccessListener(aVoid -> onSuccess.run())
-                .addOnFailureListener(onError::accept);
-    }
-
     // --- Gestion des Réservations ---
 
     /**
@@ -106,16 +86,6 @@ public class AdminRepository {
     public void updateBookingStatus(String bookingId, String newStatus, Runnable onSuccess, java.util.function.Consumer<Exception> onError) {
         db.collection("bookings").document(bookingId)
                 .update("status", newStatus)
-                .addOnSuccessListener(aVoid -> onSuccess.run())
-                .addOnFailureListener(onError::accept);
-    }
-
-    /**
-     * Supprime une réservation (en cas d'erreur ou d'annulation définitive).
-     */
-    public void deleteBooking(String bookingId, Runnable onSuccess, java.util.function.Consumer<Exception> onError) {
-        db.collection("bookings").document(bookingId)
-                .delete()
                 .addOnSuccessListener(aVoid -> onSuccess.run())
                 .addOnFailureListener(onError::accept);
     }

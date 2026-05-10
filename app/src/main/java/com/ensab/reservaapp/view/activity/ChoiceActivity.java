@@ -1,6 +1,5 @@
 package com.ensab.reservaapp.view.activity;
 
-import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,14 +14,10 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.core.view.GravityCompat;
-import com.google.android.material.navigation.NavigationView;
-
 import com.ensab.reservaapp.R;
 import com.ensab.reservaapp.data.FirebaseHelper;
 import com.ensab.reservaapp.databinding.ActivityChoiceBinding;
 import com.ensab.reservaapp.util.NavigationHelper;
-import com.google.android.material.card.MaterialCardView;
-
 /**
  * ChoiceActivity est l'écran d'accueil principal pour les clients.
  * Elle permet de choisir entre la recherche d'hôtels, de restaurants (coming soon) 

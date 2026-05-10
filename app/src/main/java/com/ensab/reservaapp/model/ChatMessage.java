@@ -9,11 +9,6 @@ public class ChatMessage {
     private final boolean isUser;    // Vrai si le message vient du client, Faux si c'est Gemini
     private String hotelId;         // Optionnel : ID d'un hôtel recommandé par l'IA
 
-    public ChatMessage(String text, boolean isUser) {
-        this.text = text;
-        this.isUser = isUser;
-    }
-
     /**
      * Constructeur utilisé quand l'IA recommande un hôtel spécifique.
      */

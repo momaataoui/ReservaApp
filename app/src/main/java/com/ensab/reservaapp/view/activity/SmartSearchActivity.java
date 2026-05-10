@@ -6,6 +6,7 @@ import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -31,14 +32,22 @@ public class SmartSearchActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Permet à l'activité de gérer manuellement les barres système et le clavier
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
         binding = ActivitySmartSearchBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         // Ajustement pour éviter que le clavier ou les barres système ne cachent le chat
         ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
+            // On récupère les insets des barres système ET du clavier (ime)
+            Insets insetsType = insets.getInsets(WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.ime());
+            
+            // On applique un padding dynamique au bas de la vue pour "pousser" le contenu au-dessus du clavier
+            v.setPadding(insetsType.left, insetsType.top, insetsType.right, insetsType.bottom);
+            
+            return WindowInsetsCompat.CONSUMED;
         });
 
         // Configuration du RecyclerView pour le chat
@@ -82,22 +91,16 @@ public class SmartSearchActivity extends AppCompatActivity {
      * Configure les actions rapides (suggestions) affichées au-dessus du champ de texte.
      */
     private void setupSuggestions() {
-        if (binding.suggestionSearch != null) {
-            binding.suggestionSearch.setOnClickListener(v ->
-                    NavigationHelper.fastNavigate(this, HotelListActivity.class)
-            );
-        }
+        binding.suggestionSearch.setOnClickListener(v ->
+                NavigationHelper.fastNavigate(this, HotelListActivity.class)
+        );
 
-        if (binding.suggestionBookings != null) {
-            binding.suggestionBookings.setOnClickListener(v ->
-                    NavigationHelper.fastNavigate(this, MyBookingsActivity.class)
-            );
-        }
+        binding.suggestionBookings.setOnClickListener(v ->
+                NavigationHelper.fastNavigate(this, MyBookingsActivity.class)
+        );
 
-        if (binding.suggestionHelp != null) {
-            binding.suggestionHelp.setOnClickListener(v ->
-                    viewModel.sendMessage(getString(R.string.help_message))
-            );
-        }
+        binding.suggestionHelp.setOnClickListener(v ->
+                viewModel.sendMessage(getString(R.string.help_message))
+        );
     }
-}
+}

@@ -21,7 +21,7 @@ public class GeminiService {
 
     /**
      * Initialise le modèle avec la clé API et la configuration spécifiée.
-     * Utilise le modèle gemini-flash-lite pour des réponses rapides et économiques.
+     * Utilise le modèle gemini-flash-lite-latest pour des réponses rapides et économiques.
      */
     public GeminiService() {
         // Configuration par défaut (plus robuste selon les versions du SDK)

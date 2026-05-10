@@ -8,7 +8,6 @@ import com.ensab.reservaapp.databinding.ActivityAdminHotelsBinding;
 import com.ensab.reservaapp.model.Hotel;
 import com.ensab.reservaapp.repository.HotelRepository;
 import com.ensab.reservaapp.view.adapter.AdminHotelAdapter;
-import com.ensab.reservaapp.view.adapter.AdminHotelAdapter;
 import java.util.ArrayList;
 import java.util.List;
 import androidx.core.view.ViewCompat;

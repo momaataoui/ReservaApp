@@ -8,7 +8,6 @@ import com.ensab.reservaapp.databinding.ActivityAdminReservationsBinding;
 import com.ensab.reservaapp.model.Booking;
 import com.ensab.reservaapp.repository.AdminRepository;
 import com.ensab.reservaapp.view.adapter.AdminReservationAdapter;
-import com.ensab.reservaapp.view.adapter.AdminReservationAdapter;
 import java.util.ArrayList;
 import java.util.List;
 import androidx.core.view.ViewCompat;

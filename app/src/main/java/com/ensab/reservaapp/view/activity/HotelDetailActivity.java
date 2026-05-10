@@ -12,7 +12,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -21,13 +20,11 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import androidx.lifecycle.ViewModelProvider;
 import com.ensab.reservaapp.viewmodel.HotelDetailViewModel;
-import com.ensab.reservaapp.model.Hotel;
 import com.ensab.reservaapp.R;
 import com.ensab.reservaapp.databinding.ActivityHotelDetailBinding;
 import com.ensab.reservaapp.util.NavigationHelper;
 import com.ensab.reservaapp.view.adapter.HotelImageAdapter;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.google.android.material.button.MaterialButton;
 import com.google.android.material.datepicker.CalendarConstraints;
 import com.google.android.material.datepicker.DateValidatorPointForward;
 import com.google.android.material.datepicker.MaterialDatePicker;

@@ -2,9 +2,6 @@ package com.ensab.reservaapp.view.activity;
 
 import android.os.Bundle;
 import android.util.Patterns;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -112,4 +109,4 @@ public class SignUpActivity extends AppCompatActivity {
             })
             .addOnFailureListener(e -> Toast.makeText(this, "Erreur Firestore : " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
-}
+}
