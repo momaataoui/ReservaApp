@@ -8,32 +8,69 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Classe d'aide pour interagir avec les services Firebase, y compris Firestore et l'authentification.
+ * Cette classe centralise les opérations Firebase pour rendre d'autres parties de l'application plus propres.
+ */
 public class FirebaseHelper {
+    // TAG pour les messages de journalisation de cette classe
     private static final String TAG = "FirebaseHelper";
+    // Instance de la base de données Firestore
     private final FirebaseFirestore db;
+    // Instance de l'authentification Firebase
     private final FirebaseAuth mAuth;
 
+    /**
+     * Interface de rappel générique pour les opérations asynchrones.
+     * @param <T> Le type du résultat en cas de succès.
+     */
     public interface Callback<T> {
+        /**
+         * Appelée lorsque l'opération asynchrone se termine avec succès.
+         * @param result Le résultat de l'opération.
+         */
         void onSuccess(T result);
+
+        /**
+         * Appelée lorsque l'opération asynchrone échoue.
+         * @param error Une chaîne de caractères décrivant l'erreur.
+         */
         void onFailure(String error);
     }
 
+    /**
+     * Constructeur pour FirebaseHelper.
+     * Initialise les instances de Firebase Firestore et FirebaseAuth.
+     */
     public FirebaseHelper() {
         db = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
     }
 
+    /**
+     * Récupère tous les documents d'hôtel de la collection "hotels" dans Firestore.
+     * Le résultat est livré via le OnCompleteListener fourni.
+     * @param callback Un OnCompleteListener pour gérer le succès ou l'échec de l'opération de récupération.
+     */
     public void getHotels(OnCompleteListener<QuerySnapshot> callback) {
         db.collection("hotels").get().addOnCompleteListener(callback);
     }
 
+    /**
+     * Vérifie si la collection "hotels" est vide et, si c'est le cas, insère des données d'hôtel d'exemple.
+     * Ceci est utile pour la configuration initiale ou les environnements de développement.
+     * @param callback Un Callback<Void> pour signaler l'achèvement de l'opération (succès ou échec).
+     */
     public void insertSampleDataIfEmpty(Callback<Void> callback) {
-        Log.d(TAG, "Checking if sample data needs to be inserted...");
+        Log.d(TAG, "Vérification si des données d'exemple doivent être insérées...");
+        // Limiter à 1 document pour vérifier efficacement si la collection contient des données
         db.collection("hotels").limit(1).get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
+                // Si aucun document n'est trouvé, la collection est vide
                 if (task.getResult().isEmpty()) {
-                    Log.d(TAG, "Hotels collection is empty. Inserting sample data...");
+                    Log.d(TAG, "La collection d'hôtels est vide. Insertion des données d'exemple...");
                     
+                    // Insérer des données d'hôtel d'exemple prédéfinies
                     insertHotel("La Mamounia Marrakech", "Marrakech", "Palais légendaire au cœur de la médina.", 4500, 4.9, "https://images.unsplash.com/photo-1590073844006-33379778ae09?auto=format&fit=crop&w=800&q=80");
                     insertHotel("Sofitel Agadir Thalassa", "Agadir", "Resort 5 étoiles face à l'océan.", 2200, 4.6, "https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80");
                     insertHotel("Royal Mansour Casablanca", "Casablanca", "Architecture art-déco majestueuse.", 3500, 4.8, "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80");
@@ -53,19 +90,33 @@ public class FirebaseHelper {
                     insertHotel("Dakhla Club Hotel & Spa", "Dakhla", "Kitesurf et détente entre désert et océan.", 2700, 4.7, "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80");
                     insertHotel("Hyatt Regency Taghazout", "Agadir", "Surfez dans le luxe absolu.", 3200, 4.8, "https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80");
 
+                    // Notifier le succès après avoir tenté d'insérer tous les hôtels.
+                    // Remarque : Les échecs d'insertion d'hôtels individuels sont journalisés en interne.
                     callback.onSuccess(null);
                 } else {
-                    Log.d(TAG, "Hotels collection already contains data.");
-                    callback.onSuccess(null);
+                    Log.d(TAG, "La collection d'hôtels contient déjà des données. Aucune donnée d'exemple insérée.");
+                    callback.onSuccess(null); // La collection n'est pas vide, c'est toujours une vérification réussie
                 }
             } else {
-                Log.e(TAG, "Error checking collection: " + task.getException().getMessage());
+                // Journaliser et signaler toute erreur rencontrée lors de la vérification de la collection
+                Log.e(TAG, "Erreur lors de la vérification de la collection : " + task.getException().getMessage());
                 callback.onFailure(task.getException().getMessage());
             }
         });
     }
 
+    /**
+     * Insère un document d'hôtel unique dans la collection "hotels" de Firestore.
+     * Journalise le succès ou l'échec de l'insertion.
+     * @param name Le nom de l'hôtel.
+     * @param city La ville où l'hôtel est situé.
+     * @param desc Une description de l'hôtel.
+     * @param price Le prix par nuit pour l'hôtel.
+     * @param rating La note de l'hôtel (par exemple, sur 5).
+     * @param imageUrl L'URL d'une image pour l'hôtel.
+     */
     private void insertHotel(String name, String city, String desc, double price, double rating, String imageUrl) {
+        // Créer une HashMap pour stocker les données de l'hôtel
         Map<String, Object> hotel = new HashMap<>();
         hotel.put("name", name);
         hotel.put("city", city);
@@ -74,8 +125,9 @@ public class FirebaseHelper {
         hotel.put("rating", rating);
         hotel.put("imageUrl", imageUrl);
         
+        // Ajouter la map de l'hôtel comme nouveau document à la collection "hotels"
         db.collection("hotels").add(hotel)
-            .addOnSuccessListener(documentReference -> Log.d(TAG, "Hotel inserted: " + name))
-            .addOnFailureListener(e -> Log.e(TAG, "Error inserting hotel " + name + ": " + e.getMessage()));
+            .addOnSuccessListener(documentReference -> Log.d(TAG, "Hôtel inséré avec succès : " + name + " avec l'ID : " + documentReference.getId()))
+            .addOnFailureListener(e -> Log.e(TAG, "Erreur lors de l'insertion de l'hôtel " + name + " : " + e.getMessage()));
     }
 }

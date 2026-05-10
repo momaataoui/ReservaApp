@@ -64,10 +64,7 @@
             android:name=".view.activity.SmartSearchActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
-        <activity
-            android:name=".view.activity.FullScreenImageActivity"
-            android:exported="false"
-            android:theme="@style/Theme.AppCompat.NoActionBar" />
+
 
         <!-- Admin Activities -->
         <activity
